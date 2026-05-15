@@ -85,8 +85,8 @@ served directly from the Cesium CDN bundle. No Cesium Ion account is needed.
 
 ## Project Structure
 demo2.html ← self-contained demo (HTML + CSS + JS, ~1600 lines)
-data/
-CSS_OEM.dat ← Musico orbit data (CCSDS OEM)
+data/   
+CSS_OEM.dat ← Musico orbit data (CCSDS OEM)   
 FYBB1.tle ← FYBB#1 TLE (optional)
 
 text
@@ -95,7 +95,7 @@ text
 
 ## Credits
 
-- Orbit data: HKUST Musico mission / FYBB#1 team  
+- Orbit data: space-track, cmse, HKUST Musico mission / FYBB#1 team  
 - Basemap tiles: Esri, OpenStreetMap contributors, CARTO  
 - HK imagery: Lands Department, HKSAR Government  
 - 3D engine: [CesiumJS](https://cesium.com) (Apache 2.0)  
