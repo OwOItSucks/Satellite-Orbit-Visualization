@@ -1,0 +1,1481 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HKUST Satellite Orbit Visualization</title>
+<script src="https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Cesium.js"></script>
+<link href="https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/satellite.js@5.0.0/dist/satellite.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;background:#0d1117;overflow:hidden}
+#cesiumContainer{width:100vw;height:100vh;position:absolute;top:0;left:0}
+
+/* ══════════════════════════════════════════
+   BANNER
+══════════════════════════════════════════ */
+#banner{
+  position:absolute;top:0;left:0;right:0;
+  height:42px;
+  background:linear-gradient(90deg,rgba(13,17,23,0.97) 0%,rgba(20,30,50,0.97) 60%,rgba(13,17,23,0.97) 100%);
+  border-bottom:1px solid #1f3a5c;
+  display:flex;align-items:center;justify-content:center;gap:12px;
+  z-index:200;
+  pointer-events:none;
+}
+
+#banner .b-title {
+  font-size:15px;font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:.06em;
+  color: #e6edf3;   /* 其他文字保持浅灰白 */
+}
+#banner .b-title .hkust {
+  color: #996600;   /* 金棕色 */
+}
+#banner .b-title .musico {
+  color: #CCCCCC;   /* 蓝色 */
+}
+#banner .b-title .fybb {
+  color: #00b08d;   /* 青绿色*/
+}
+
+#banner .b-badge{
+  font-size:10px;font-weight:600;
+  background:#1a3654;color:#58a6ff;
+  border:1px solid #1f4172;border-radius:999px;
+  padding:2px 9px;letter-spacing:.05em;
+}
+
+.cesium-widget-credits,.cesium-credit-logoContainer,.cesium-credit-textContainer{display:none!important}
+
+/* ══ PANEL ══ */
+#panel{
+  position:absolute;top:42px;left:0;
+  width:280px;height:calc(100vh - 42px);
+  background:rgba(13,17,23,.93);backdrop-filter:blur(10px);
+  border-right:1px solid #30363d;
+  display:flex;flex-direction:column;
+  z-index:100;
+  transition:transform .35s cubic-bezier(.16,1,.3,1);
+  overflow-y:auto;
+}
+
+/* ══ 右侧实时状态面板 ══ */
+#rPanel {
+  position: absolute;
+  top: 42px; right: 0;
+  width: 230px;
+  height: calc(100vh - 42px);
+  background: rgba(13,17,23,.93);
+  backdrop-filter: blur(10px);
+  border-left: 1px solid #30363d;
+  display: flex; flex-direction: column;
+  z-index: 100;
+  transition: transform .35s cubic-bezier(.16,1,.3,1);
+  overflow-y: auto;
+}
+#rPanel.collapsed { transform: translateX(230px); }
+#rtb {
+  position: absolute;
+  top: calc(42px + 50% - 24px); right: 230px;
+  width: 20px; height: 48px;
+  background: rgba(13,17,23,.93);
+  border: 1px solid #30363d; border-right: none;
+  border-radius: 6px 0 0 6px;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  color: #8b949e; z-index: 101;
+  transition: right .35s cubic-bezier(.16,1,.3,1); font-size: 10px;
+}
+#rtb.collapsed { right: 0; }
+
+/* 卫星状态卡片 */
+.sat-card { padding: 10px 14px; border-bottom: 1px solid #21262d; }
+.sat-card-hd {
+  font-size: 11px; font-weight: 700; letter-spacing: .08em;
+  text-transform: uppercase; margin-bottom: 8px;
+  display: flex; align-items: center; gap: 6px;
+}
+.sat-card-hd .dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  display: inline-block;
+  box-shadow: 0 0 6px currentColor;
+  animation: blink 1.4s infinite;
+}
+@keyframes blink { 50% { opacity: .35; } }
+
+/* 底图切换 */
+.basemap-group { display: flex; flex-direction: column; gap: 4px; padding: 10px 14px; border-bottom: 1px solid #21262d; }
+.bm-btn {
+  width: 100%; padding: 6px 10px;
+  background: #161b22; border: 1px solid #30363d; border-radius: 5px;
+  color: #8b949e; font-size: 11px; font-weight: 600;
+  cursor: pointer; text-align: left; transition: all .15s;
+  display: flex; align-items: center; gap: 7px;
+}
+.bm-btn:hover { background: #21262d; color: #e6edf3; }
+.bm-btn.active { background: #1a3654; border-color: #58a6ff; color: #58a6ff; }
+.bm-btn .bm-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+
+#panel.collapsed{transform:translateX(-280px)}
+.ph{padding:14px 16px 10px;border-bottom:1px solid #21262d;display:flex;align-items:center;gap:10px}
+.ph-title{font-size:14px;font-weight:700;color:#e6edf3}
+.ph-sub{font-size:11px;color:#8b949e;margin-top:2px}
+.ps{padding:12px 16px;border-bottom:1px solid #21262d}
+.sl{font-size:10px;font-weight:700;letter-spacing:.08em;color:#484f58;text-transform:uppercase;margin-bottom:8px}
+.mr{display:flex;justify-content:space-between;margin-bottom:4px;gap:8px}
+.mk{font-size:11px;color:#8b949e}
+.mv{font-size:11px;color:#e6edf3;font-weight:500;text-align:right;max-width:155px;word-break:break-all}
+.mv.cyan{color:#39d0c8}
+.mv.badge{background:#1f3248;color:#58a6ff;padding:1px 7px;border-radius:999px;font-size:10px;font-weight:600}
+.kg{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px}
+.kc{background:#161b22;border:1px solid #30363d;border-radius:6px;padding:8px}
+.kl{font-size:10px;color:#8b949e;margin-bottom:3px}
+.kv{font-size:13px;font-weight:700;color:#e6edf3;font-variant-numeric:tabular-nums}
+.kv.cyan{color:#39d0c8}.kv.gold{color:#e3b341}.kv.green{color:#3fb950}
+.sr{display:flex;gap:6px;flex-wrap:wrap}
+.bs{flex:1;padding:5px 0;background:#21262d;border:1px solid #30363d;border-radius:5px;color:#8b949e;font-size:11px;font-weight:700;cursor:pointer;transition:all .15s}
+.bs:hover{background:#30363d;color:#e6edf3}
+.bs.active{background:#58a6ff;border-color:#58a6ff;color:#fff}
+.tl{display:flex;flex-direction:column;gap:6px}
+.ti{display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background:#161b22;border:1px solid #30363d;border-radius:6px;font-size:12px;color:#c9d1d9}
+.ti label{cursor:pointer;display:flex;align-items:center;gap:6px}
+.sw{position:relative;width:32px;height:18px}
+.sw input{opacity:0;width:0;height:0}
+.tr{position:absolute;inset:0;background:#30363d;border-radius:999px;cursor:pointer;transition:background .18s}
+.tr::before{content:'';position:absolute;left:2px;top:2px;width:14px;height:14px;background:#fff;border-radius:50%;transition:transform .18s}
+.sw input:checked+.tr{background:#58a6ff}
+.sw input:checked+.tr::before{transform:translateX(14px)}
+.al{display:flex;flex-direction:column;gap:6px}
+.ba{width:100%;padding:7px 12px;background:#21262d;border:1px solid #30363d;border-radius:6px;color:#c9d1d9;font-size:12px;font-weight:500;cursor:pointer;text-align:left;transition:all .15s}
+.ba:hover{background:#30363d;color:#e6edf3}
+.ba.primary{background:#1a3654;border-color:#58a6ff;color:#58a6ff}
+.ba.primary:hover{background:#1f4172}
+.ba.active{background:#1f4172;border-color:#58a6ff;color:#fff;box-shadow:inset 0 0 0 1px rgba(88,166,255,.3)}
+/* 定位至影像区域 — 暗蓝绿色 + 白边 */
+.ba.scene{background:#0e2a2f;border:1px solid #ffffff55;color:#e6edf3}
+.ba.scene:hover{background:#153a40;border-color:#fff;color:#fff}
+
+#tb{position:absolute;top:calc(42px + 50% - 24px);left:280px;
+  width:20px;height:48px;background:rgba(13,17,23,.93);
+  border:1px solid #30363d;border-left:none;border-radius:0 6px 6px 0;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  color:#8b949e;z-index:101;transition:left .35s cubic-bezier(.16,1,.3,1);font-size:10px}
+#tb.collapsed{left:0}
+#hud{position:absolute;bottom:24px;right:24px;background:rgba(13,17,23,.88);backdrop-filter:blur(8px);border:1px solid #30363d;border-radius:10px;padding:10px 14px;font-size:11px;color:#8b949e;min-width:220px;z-index:100;display:none}
+#hud.on{display:block}
+.hr2{display:flex;justify-content:space-between;gap:16px;margin-bottom:3px}
+.hk{color:#484f58}.hv{color:#e6edf3;font-weight:600;font-variant-numeric:tabular-nums}
+#timebar{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);background:rgba(13,17,23,.88);backdrop-filter:blur(8px);border:1px solid #30363d;border-radius:10px;padding:8px 16px 10px;font-size:11px;color:#8b949e;z-index:100;display:none;white-space:nowrap;min-width:480px}
+#timebar.on{display:block}
+.tb-row{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.tb-edge{font-size:10px;color:#484f58;min-width:100px}
+.tb-edge:last-child{text-align:right}
+.tb-slider-wrap{flex:1;position:relative;height:14px;display:flex;align-items:center}
+#tbSlider{width:100%;height:4px;-webkit-appearance:none;appearance:none;background:#30363d;border-radius:2px;outline:none;cursor:pointer;position:relative;z-index:2}
+#tbSlider::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:#58a6ff;border:2px solid #1a3654;cursor:pointer;transition:background .15s}
+#tbSlider:hover::-webkit-slider-thumb{background:#79b8ff}
+.tb-progress{position:absolute;left:0;top:50%;transform:translateY(-50%);height:4px;background:#58a6ff;border-radius:2px;pointer-events:none;z-index:1;width:0}
+.tb-center{display:flex;align-items:center;justify-content:center;gap:10px}
+#td{color:#e6edf3;font-weight:500;font-variant-numeric:tabular-nums}
+.tb-btn{background:#21262d;border:1px solid #30363d;border-radius:5px;color:#8b949e;font-size:13px;padding:1px 8px;cursor:pointer;transition:all .15s;line-height:1.4}
+.tb-btn:hover{background:#30363d;color:#e6edf3}
+#err{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:#3d1c1c;border:1px solid #f85149;border-radius:10px;padding:20px 28px;color:#f85149;font-size:13px;font-weight:500;text-align:center;max-width:360px;z-index:200;display:none}
+#err.on{display:block}
+.eh{margin-top:8px;font-size:11px;color:#8b949e;font-weight:400}
+.eb{margin-top:14px;padding:7px 20px;background:#21262d;border:1px solid #30363d;border-radius:6px;color:#c9d1d9;font-size:12px;cursor:pointer}
+.eb:hover{background:#30363d}
+</style>
+</head>
+<body>
+
+<!-- ══ BANNER ══ -->
+<div id="banner">
+  <div class="b-title">
+    <span class="hkust">HKUST</span> ·
+    <span class="musico">Musico</span>&nbsp;&nbsp;&nbsp;&amp;&nbsp;&nbsp;&nbsp;
+    <span class="fybb">FYBB#1</span> ·
+    Satellite Orbit Visualization
+  </div>
+  <div class="b-badge">DEMO</div>
+</div>
+
+<div id="cesiumContainer"></div>
+<button id="tb" title="收起">&#8249;</button>
+
+<div id="panel">
+  <div class="ph">
+    <div>
+      <div class="ph-title" id="pTitle">Orbit Viewer</div>
+      <div class="ph-sub" id="pSub">…</div>
+    </div>
+  </div>
+
+  <!-- 卫星信息 -->
+  <div class="ps">
+    <div class="sl">卫星信息</div>
+    <div class="mr"><span class="mk">名称</span><span class="mv cyan" id="mName-"></span></div>
+    <div class="mr"><span class="mk">ID</span><span class="mv" id="mId-"></span></div>
+    <div class="mr"><span class="mk">参考系</span><span class="mv badge" id="mFrame-"></span></div>
+    <div class="mr"><span class="mk">时间系统</span><span class="mv badge" id="mTsys-"></span></div>
+    <div class="mr"><span class="mk">中心体</span><span class="mv" id="mCenter-"></span></div>
+  </div>
+
+  <!-- 轨道统计 -->
+  <div class="ps">
+    <div class="sl">轨道统计</div>
+    <div class="kg">
+      <div class="kc"><div class="kl">历元数</div><div class="kv cyan" id="kCount-"></div></div>
+      <div class="kc"><div class="kl">覆盖天数</div><div class="kv gold" id="kDays-"></div></div>
+      <div class="kc"><div class="kl">平均高度 km</div><div class="kv green" id="kAlt-"></div></div>
+      <div class="kc"><div class="kl">Vmax km/s</div><div class="kv" id="kVmax-"></div></div>
+    </div>
+    <div class="mr" style="margin-top:12px"><span class="mk">开始</span><span class="mv" id="mStart-"></span></div>
+    <div class="mr"><span class="mk">结束</span><span class="mv" id="mStop-"></span></div>
+  </div>
+
+  <!-- 播放速度 -->
+  <div class="ps">
+    <div class="sl">播放速度</div>
+    <div class="sr">
+      <button class="bs active" data-spd="10">10x</button>
+      <button class="bs" data-spd="100">100x</button>
+      <button class="bs" data-spd="500">500x</button>
+      <button class="bs" data-spd="1000">1000x</button>
+    </div>
+  </div>
+
+  <!-- 图层开关 -->
+  <div class="ps">
+    <div class="sl">图层</div>
+    <div class="tl">
+      <div class="ti"><label for="togO">轨道线</label><label class="sw"><input type="checkbox" id="togO" checked><span class="tr"></span></label></div>
+      <div class="ti"><label for="togS">卫星图标</label><label class="sw"><input type="checkbox" id="togS" checked><span class="tr"></span></label></div>
+      <div class="ti"><label for="togL">标签</label><label class="sw"><input type="checkbox" id="togL" checked><span class="tr"></span></label></div>
+    </div>
+  </div>
+
+  <!-- 卫星选择（多星时出现） -->
+  <div class="ps" id="psSatSelect" style="display:none">
+    <div class="sl">卫星选择</div>
+    <select id="satSelect" class="ba" style="width:100%"></select>
+  </div>
+
+  <!-- 操作 -->
+  <div class="ps">
+    <div class="sl">操作</div>
+    <div class="al">
+      <button class="ba primary" id="btnHome">回到全局视角</button>
+      <button class="ba" id="btnFollow">跟踪卫星</button>
+      <button class="ba" id="btnFree">退出跟踪</button>
+      <button class="ba scene" id="btnGotoScene">定位至影像区域</button>
+    </div>
+  </div>
+
+  <!-- 轨道线切换 -->
+  <div class="ps">
+    <div class="sl">轨道线</div>
+    <div class="al">
+      <button class="ba" id="btnToggleOtherOrbit">显示另一卫星轨道线</button>
+    </div>
+  </div>
+
+  <!-- 时间窗口 | 轨迹密度 -->
+  <div class="ps">
+    <div class="sl">时间窗口 | 轨迹密度</div>
+    <div class="sr">
+      <button class="bs active" data-orbit-days="1">1天</button>
+      <button class="bs" data-orbit-days="3">3天</button>
+      <button class="bs" data-orbit-days="7">7天</button>
+    </div>
+  </div>
+</div>
+
+<!-- 右侧收起 Tab -->
+<button id="rtb" title="收起">›</button>
+
+<!-- 右侧面板 -->
+<div id="rPanel">
+
+  <!-- 底图切换 -->
+  <div class="ph">
+    <div>
+      <div class="ph-title">底图 / 图层</div>
+      <div class="ph-sub">Basemap</div>
+    </div>
+  </div>
+  <div class="basemap-group">
+    <button class="bm-btn" id="bm-sat">
+      <span class="bm-dot" style="background:#8e44ad"></span>Esri WorldImagery
+    </button>
+    <button class="bm-btn" id="bm-osm">
+      <span class="bm-dot" style="background:#27ae60"></span>OpenStreetMap
+    </button>
+    <button class="bm-btn" id="bm-dark">
+      <span class="bm-dot" style="background:#2c3e50"></span>CartoDB Dark
+    </button>
+  </div>
+
+  <!-- 卫星实时状态（由 JS 动态填充） -->
+  <div class="ph" style="border-top: 1px solid #21262d;">
+    <div>
+      <div class="ph-title">实时状态</div>
+      <div class="ph-sub">时间轴当前位置</div>
+    </div>
+  </div>
+  <div id="satStatusArea"></div>
+
+</div>
+
+<!-- 时间轴 -->
+<div id="timebar">
+  <div class="tb-row">
+    <span id="tbStart" class="tb-edge">-</span>
+    <div class="tb-slider-wrap">
+      <input type="range" id="tbSlider" min="0" max="10000" value="0" step="1">
+      <div id="tbProgress" class="tb-progress"></div>
+    </div>
+    <span id="tbEnd" class="tb-edge">-</span>
+  </div>
+  <div class="tb-center">
+    <span id="td">-</span>
+    <button id="tbPlayPause" class="tb-btn" title="播放/暂停">▶</button>
+  </div>
+</div>
+
+<!-- HUD -->
+<div id="hud">
+  <div class="hr2"><span class="hk">X km</span><span class="hv" id="hX-">-</span></div>
+  <div class="hr2"><span class="hk">Y km</span><span class="hv" id="hY-">-</span></div>
+  <div class="hr2"><span class="hk">Z km</span><span class="hv" id="hZ-">-</span></div>
+  <div class="hr2"><span class="hk">高度 km</span><span class="hv" id="hAlt-">-</span></div>
+</div>
+
+<!-- 错误框 -->
+<div id="err">
+  <div id="eText"></div>
+  <div class="eh" id="eHint">数据加载失败，请检查 /data/ 目录</div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════
+// 名称/ID 硬映射（Demo 展示层覆盖）
+// ══════════════════════════════════════════════════
+const DISPLAY_MAP = {
+  'Musico':    { displayName: '中国空间站', displayId: 'Musico' },
+  'CSS':       { displayName: '中国空间站', displayId: 'Musico' },
+  '1998-067A': { displayName: '中国空间站', displayId: 'Musico' },
+  '48274':     { displayName: '中国空间站', displayId: 'Musico' },
+  'TIANHE':    { displayName: '中国空间站', displayId: 'Musico' },
+  'FYBB#1':    { displayName: '雄彬一号',   displayId: 'FYBB#1' },
+  'FYBB1':     { displayName: '雄彬一号',   displayId: 'FYBB#1' },
+};
+
+const FYBB1_TLE_RAW = `FYBB#1
+1 57696U 23127A   26132.29540856  .00002539  00000-0  15861-3 0  9994
+2 57696  97.5541 226.5860 0013137 101.5708 258.6997 15.10304365150215`;
+
+function initBasemapSwitcher(viewer, imageryLayer) {
+  const LAYERS = {
+    'bm-natural': () => new Cesium.TileMapServiceImageryProvider({
+      url: Cesium.buildModuleUrl('Assets/Textures/NaturalEarthII'),
+      fileExtension: 'jpg',
+    }),
+    'bm-osm': () => new Cesium.UrlTemplateImageryProvider({
+      url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+      maximumLevel: 19,
+      credit: '© OpenStreetMap contributors',
+    }),
+    'bm-sat': () => new Cesium.ArcGisMapServerImageryProvider({
+      url: 'https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer',
+    }),
+    'bm-dark': () => new Cesium.UrlTemplateImageryProvider({
+      url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
+      subdomains: ['a','b','c','d'],
+      maximumLevel: 18,
+      credit: '© OpenStreetMap © CARTO',
+    }),
+  };
+
+  Object.keys(LAYERS).forEach(id => {
+    const btn = G(id);
+    if (!btn) return;
+    btn.addEventListener('click', () => {
+      // 切换底图：只移除非场景（非 imageryLayer）的图层，保留 imageryLayer
+      for (let i = viewer.imageryLayers.length - 1; i >= 0; i--) {
+        const l = viewer.imageryLayers.get(i);
+        if (!l || l._isimageryLayer) continue;
+        try { viewer.imageryLayers.remove(l); } catch (e) { console.warn('remove layer failed', e); }
+      }
+      // 添加新的底图（作为底层）
+      const newLayer = viewer.imageryLayers.addImageryProvider(LAYERS[id]());
+      // 将场景图层置顶（如果存在）
+      
+      if (imageryLayer) {
+        try { viewer.imageryLayers.raiseToTop(imageryLayer); } catch (e) { console.warn('raiseToTop failed', e); }
+      }
+      // 更新 active 状态
+      document.querySelectorAll('.bm-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
+}
+// 工具函数
+// ══════════════════════════════════════════════════
+const G = id => document.getElementById(id);
+const T = (id, v) => { const e = G(id); if (e) e.textContent = v ?? ''; };
+
+function showErr(msg, hint) {
+  T('eText', msg); T('eHint', hint || '');
+  G('err').classList.add('on');
+  const c = G('cesiumContainer');
+  if (c) c.style.pointerEvents = 'none';
+}
+function fixIso(s) {
+  if (!s) return null;
+  return String(s).replace(/\.(\d{1,6})?Z/, 'Z');
+}
+function getOrbitPreset(days) {
+  const n = Math.max(1, Math.round(days || 3));
+  const presetMap = {
+    1: { stepMin: 4,  windowDays: 1 },
+    3: { stepMin: 2,  windowDays: 3 },
+    7: { stepMin: 1,  windowDays: 7 },
+  };
+  return presetMap[n] || presetMap[3];
+}
+function samplePositions(states, stepMin) {
+  const step = Math.max(1, Math.round(stepMin || 1));
+  const positions = [];
+  for (let i = 0; i < states.length; i += step) {
+    const s = states[i];
+    if (!s) continue;
+    const xM = s.xKm * 1000, yM = s.yKm * 1000, zM = s.zKm * 1000;
+    if (![xM, yM, zM].every(Number.isFinite)) continue;
+    positions.push(new Cesium.Cartesian3(xM, yM, zM));
+  }
+  return positions;
+}
+function sampleOrbitPositions(entry, anchorTimeIso, windowDays, stepMin, mode = 'center') {
+  const sampledProp = entry?.sampledProp;
+  if (!sampledProp) return [];
+
+  const anchor = anchorTimeIso ? Cesium.JulianDate.fromIso8601(anchorTimeIso) : Cesium.JulianDate.clone(entry.startJD);
+  if (!anchor) return [];
+
+  const start = Cesium.JulianDate.clone(anchor);
+  const stop = Cesium.JulianDate.clone(anchor);
+  const days = Math.max(1, windowDays);
+  if (mode === 'forward') {
+    Cesium.JulianDate.addDays(anchor, days, stop);
+  } else {
+    Cesium.JulianDate.addDays(anchor, -days, start);
+    Cesium.JulianDate.addDays(anchor,  days, stop);
+  }
+
+  const positions = [];
+  const current = Cesium.JulianDate.clone(start);
+  const step = Math.max(1, Math.round(stepMin || 1));
+  const totalMinutes = Math.max(1, Math.round(Cesium.JulianDate.secondsDifference(stop, start) / 60));
+  for (let minute = 0; minute <= totalMinutes; minute += step) {
+    const value = sampledProp.getValue(current);
+    if (value) positions.push(Cesium.Cartesian3.clone(value));
+    Cesium.JulianDate.addMinutes(current, step, current);
+  }
+  return positions;
+}
+function filterStatesByWindow(states, centerTimeIso, windowDays, mode = 'center') {
+  const anchorMs = centerTimeIso ? Date.parse(centerTimeIso) : Date.now();
+  const spanMs = Math.max(1, windowDays) * 86400000;
+  return (states || []).filter(s => {
+    const t = Date.parse(s?.timeUtc);
+    if (!Number.isFinite(t)) return false;
+    if (mode === 'forward') return t >= anchorMs && t <= anchorMs + spanMs;
+    return Math.abs(t - anchorMs) <= spanMs;
+  });
+}
+function rebuildOrbitLine(entry, days, centerTimeIso) {
+  if (!entry?.orbitLine) return;
+  const preset = getOrbitPreset(days);
+
+  let positions = [];
+  if (entry.sourceType === 'tle' && entry.tleLine1 && entry.tleLine2) {
+    const states = tleToStatesWindowed({ line1: entry.tleLine1, line2: entry.tleLine2 }, preset.windowDays, centerTimeIso);
+    positions = samplePositions(states, preset.stepMin);
+  } else if (entry.sampledProp) {
+    positions = sampleOrbitPositions(entry, centerTimeIso, preset.windowDays, preset.stepMin, 'center');
+  } else {
+    let states = [];
+    if (Array.isArray(entry.allStates)) {
+      states = filterStatesByWindow(entry.allStates, centerTimeIso, preset.windowDays);
+    }
+    positions = samplePositions(states, preset.stepMin);
+  }
+
+  if (positions.length < 2) return;
+  entry.orbitLine.polyline.positions = new Cesium.ConstantProperty(positions);
+}
+function computeStats(states) {
+  const R = 6371;
+  let altSum = 0, vmax = 0;
+  for (const s of states) {
+    const r = Math.sqrt(s.xKm**2 + s.yKm**2 + s.zKm**2);
+    altSum += r - R;
+    vmax = Math.max(vmax, Math.sqrt(s.vxKms**2 + s.vyKms**2 + s.vzKms**2));
+  }
+  const t0 = new Date(states[0].timeUtc), t1 = new Date(states[states.length-1].timeUtc);
+  return {
+    count: states.length,
+    days: ((t1-t0)/86400000).toFixed(1),
+    altMean: (altSum/states.length).toFixed(0),
+    vmax: vmax.toFixed(3),
+  };
+}
+function populatePanel(meta, stats) {
+  T('pTitle', meta.displayId || meta.objectId || meta.name || 'Orbit Viewer');
+  T('pSub', `${stats.count ?? '-'} 个历元`);
+  const nameEl = G('mName-');
+  if (nameEl) {
+    nameEl.textContent = meta.displayName || meta.objectName || '-';
+    nameEl.style.color = (meta.displayId === 'Musico') ? '#66ccff' : '#00b08d';
+  }
+  // ID 白字
+  const idEl = G('mId-');
+  if (idEl) { idEl.textContent = meta.displayId || meta.objectId || '-'; idEl.style.color = '#ffffff'; }
+  T('mFrame-', meta.refFrame || 'TEME');
+  T('mTsys-', meta.timeSystem || 'UTC');
+  T('mCenter-', meta.centerName || 'EARTH');
+  T('kCount-', stats.count ?? '-');
+  T('kDays-',  stats.days ?? '-');
+  T('kAlt-',   stats.altMean != null ? `${stats.altMean} km` : '-');
+  T('kVmax-',  stats.vmax   != null ? `${stats.vmax} km/s` : '-');
+  const fmt = s => s ? String(s).replace('T',' ').substring(0,16) : '-';
+  T('mStart-', fmt(meta.startTime));
+  T('mStop-',  fmt(meta.stopTime));
+}
+
+// ══════════════════════════════════════════════════
+// 卫星图标
+// ══════════════════════════════════════════════════
+
+// 中国空间站 — 原版蓝白色
+function makeCSSIcon() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 128; canvas.height = 128;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0,0,128,128);
+  const panelGrad = ctx.createLinearGradient(0,0,34,0);
+  panelGrad.addColorStop(0,'#2a9fff'); panelGrad.addColorStop(1,'#7edcff');
+  const bodyGrad = ctx.createLinearGradient(0,42,0,86);
+  bodyGrad.addColorStop(0,'#eef3f8'); bodyGrad.addColorStop(1,'#bfcad8');
+  function rr(x,y,w,h,r,fill,stroke,lw=1.5){
+    ctx.beginPath();ctx.moveTo(x+r,y);
+    ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);
+    ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();
+    if(fill){ctx.fillStyle=fill;ctx.fill();}
+    if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=lw;ctx.stroke();}
+  }
+  rr(4,46,34,44,3,panelGrad,'#b9f3ff');
+  rr(90,46,34,44,3,panelGrad,'#b9f3ff');
+  ctx.strokeStyle='rgba(223,251,255,0.55)';ctx.lineWidth=1;
+  [12,21,30].forEach(x=>{ctx.beginPath();ctx.moveTo(x,46);ctx.lineTo(x,90);ctx.stroke();});
+  [98,107,116].forEach(x=>{ctx.beginPath();ctx.moveTo(x,46);ctx.lineTo(x,90);ctx.stroke();});
+  [57,68,79].forEach(y=>{
+    ctx.beginPath();ctx.moveTo(4,y);ctx.lineTo(38,y);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(90,y);ctx.lineTo(124,y);ctx.stroke();
+  });
+  rr(36,62,56,4,2,'#8ea0b5');
+  rr(54,42,20,44,10,bodyGrad,'#dfe6ee');
+  rr(44,54,10,20,5,bodyGrad,'#dfe6ee',1.2);
+  rr(74,54,10,20,5,bodyGrad,'#dfe6ee',1.2);
+  rr(58,34,12,8,4,bodyGrad,'#dfe6ee',1.2);
+  rr(58,86,12,8,4,bodyGrad,'#dfe6ee',1.2);
+  ctx.fillStyle='#7fd7ff';ctx.strokeStyle='#eafcff';ctx.lineWidth=1;
+  [[64,50],[64,78]].forEach(([x,y])=>{
+    ctx.beginPath();ctx.arc(x,y,3.2,0,Math.PI*2);ctx.fill();ctx.stroke();
+  });
+  ctx.fillStyle='#ffd166';
+  ctx.beginPath();ctx.arc(64,64,4,0,Math.PI*2);ctx.fill();
+  return canvas;
+}
+
+// FYBB#1 — 绿色遥感卫星（带遥感相机特征）
+function makeFYBBIcon() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 128; canvas.height = 128;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0,0,128,128);
+
+  // 太阳能帆板 — 绿色系
+  const panelGrad = ctx.createLinearGradient(0,0,34,0);
+  panelGrad.addColorStop(0,'#1a7a4a'); panelGrad.addColorStop(1,'#3ddc84');
+  const bodyGrad = ctx.createLinearGradient(0,42,0,86);
+  bodyGrad.addColorStop(0,'#d4edda'); bodyGrad.addColorStop(1,'#a8d5b5');
+
+  function rr(x,y,w,h,r,fill,stroke,lw=1.5){
+    ctx.beginPath();ctx.moveTo(x+r,y);
+    ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);
+    ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();
+    if(fill){ctx.fillStyle=fill;ctx.fill();}
+    if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=lw;ctx.stroke();}
+  }
+
+  // 左右帆板（绿色）
+  rr(4,48,32,32,3,panelGrad,'#7fffc4');
+  rr(92,48,32,32,3,panelGrad,'#7fffc4');
+  // 帆板网格线
+  ctx.strokeStyle='rgba(180,255,200,0.5)';ctx.lineWidth=1;
+  [14,24].forEach(x=>{ctx.beginPath();ctx.moveTo(x,48);ctx.lineTo(x,80);ctx.stroke();});
+  [102,112].forEach(x=>{ctx.beginPath();ctx.moveTo(x,48);ctx.lineTo(x,80);ctx.stroke();});
+  [58,66,74].forEach(y=>{
+    ctx.beginPath();ctx.moveTo(4,y);ctx.lineTo(36,y);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(92,y);ctx.lineTo(124,y);ctx.stroke();
+  });
+
+  // 连接杆
+  rr(36,62,56,4,2,'#5a9a6a');
+
+  // 主机体（方形，遥感卫星特征）
+  rr(50,38,28,52,6,bodyGrad,'#8fc49a');
+
+  // 遥感相机镜头（底部突出，特征形状）
+  rr(58,88,12,12,4,'#222','#3ddc84',2);
+  ctx.beginPath();ctx.arc(64,94,4,0,Math.PI*2);
+  ctx.fillStyle='#1a1a2e';ctx.fill();
+  ctx.beginPath();ctx.arc(64,94,2,0,Math.PI*2);
+  ctx.fillStyle='#3ddc84';ctx.fill();
+
+  // 天线（顶部）
+  ctx.strokeStyle='#3ddc84';ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(64,38);ctx.lineTo(64,26);ctx.stroke();
+  ctx.beginPath();ctx.arc(64,24,4,0,Math.PI*2);
+  ctx.strokeStyle='#7fffc4';ctx.lineWidth=1.5;ctx.stroke();
+
+  // 机体指示灯
+  ctx.fillStyle='#00ff88';
+  [[58,50],[70,50],[58,70],[70,70]].forEach(([x,y])=>{
+    ctx.beginPath();ctx.arc(x,y,2.5,0,Math.PI*2);ctx.fill();
+  });
+
+  // 中心标记
+  ctx.fillStyle='#ffffff';
+  ctx.beginPath();ctx.arc(64,62,3,0,Math.PI*2);ctx.fill();
+
+  return canvas;
+}
+
+const CSS_ICON_URL  = makeCSSIcon().toDataURL();
+const FYBB_ICON_URL = makeFYBBIcon().toDataURL();
+
+// ══════════════════════════════════════════════════
+// OEM 解析
+// ══════════════════════════════════════════════════
+function parseHeaderLine(line) {
+  const m = line.match(/^([A-Z0-9_?]+)\s*=\s*(.*)$/);
+  return m ? [m[1].trim(), m[2].trim()] : null;
+}
+function parseOemText(text) {
+  const lines = String(text).split('\n').map(s=>s.trim()).filter(Boolean);
+  const rawHeader = {}; const states = [];
+  const re = /^(\d{4}-\d{2}-\d{2}T[\d:.Z+-]+)\s+([-\d.Ee+]+)\s+([-\d.Ee+]+)\s+([-\d.Ee+]+)\s+([-\d.Ee+]+)\s+([-\d.Ee+]+)\s+([-\d.Ee+]+)/i;
+  for (const line of lines) {
+    if (/^(COMMENT|META_START|META_STOP|COVARIANCE_START|COVARIANCE_STOP)/.test(line)) continue;
+    const sm = line.match(re);
+    if (sm) { states.push({timeUtc:sm[1],xKm:+sm[2],yKm:+sm[3],zKm:+sm[4],vxKms:+sm[5],vyKms:+sm[6],vzKms:+sm[7]}); continue; }
+    const hm = parseHeaderLine(line);
+    if (hm) rawHeader[hm[0]] = hm[1];
+  }
+  return {
+    meta: {
+      objectName: rawHeader['OBJECT_NAME']??rawHeader['OBJECTNAME']??'',
+      objectId:   rawHeader['OBJECT_ID']??rawHeader['OBJECTID']??'',
+      centerName: rawHeader['CENTER_NAME']??'EARTH',
+      refFrame:   rawHeader['REF_FRAME']??'',
+      timeSystem: rawHeader['TIME_SYSTEM']??'UTC',
+      startTime:  rawHeader['START_TIME']??'',
+      stopTime:   rawHeader['STOP_TIME']??'',
+    }, rawHeader, states,
+  };
+}
+
+// ══════════════════════════════════════════════════
+// TLE 解析
+// ══════════════════════════════════════════════════
+function parseTleBlocks(rawText) {
+  const lines = String(rawText).split('\n').map(s=>s.trim()).filter(Boolean);
+  const sats = []; let i = 0;
+  while (i < lines.length) {
+    let name='',line1='',line2='';
+    if (!lines[i]?.startsWith('1 ') && !lines[i]?.startsWith('2 ')) { name=lines[i]; i++; }
+    if (lines[i]?.startsWith('1 ')) { line1=lines[i]; line2=lines[i+1]; i+=2; } else { i++; continue; }
+    if (!line1||!line2?.startsWith('2 ')) continue;
+    const m = line1.match(/^1\s+(\d{1,6})/);
+    sats.push({name, noradId: m?m[1]:'', line1, line2});
+  }
+  return sats;
+}
+function tleEpochToIso(line1) {
+  const yy=+String(line1).slice(18,20), ddd=+String(line1).slice(20,32);
+  if (!isFinite(yy)||!isFinite(ddd)) return '';
+  const fullYear = yy<57?2000+yy:1900+yy;
+  return new Date(Date.UTC(fullYear,0,1)+(ddd-1)*86400000).toISOString();
+}
+
+// ══════════════════════════════════════════════════
+// 轨道传播 TLE → states（前后 windowDays 天）
+// ══════════════════════════════════════════════════
+function tleToStatesWindowed(sat, windowDays = 3, startIso = null) {
+  const satrec = satellite.twoline2satrec(sat.line1, sat.line2);
+  const start = new Date(startIso || new Date().toISOString());
+  const stop  = new Date(start.getTime() + windowDays*86400000);
+  const states = [];
+  for (let t=start.getTime(); t<=stop.getTime(); t+=60000) {
+    const d = new Date(t);
+    let pv; try { pv = satellite.propagate(satrec, d); } catch(e){ continue; }
+    const p=pv?.position, v=pv?.velocity;
+    if (!p||!v) continue;
+    const gmst = satellite.gstime(d);
+    const pe = satellite.eciToEcf(p,gmst), ve = satellite.eciToEcf(v,gmst);
+    if (!pe||!ve) continue;
+    states.push({timeUtc:d.toISOString(),xKm:pe.x,yKm:pe.y,zKm:pe.z,vxKms:ve.x,vyKms:ve.y,vzKms:ve.z});
+  }
+  return states;
+}
+
+// ══════════════════════════════════════════════════
+// Cesium Viewer
+// ══════════════════════════════════════════════════
+async function createViewer() {
+  const viewer = new Cesium.Viewer('cesiumContainer', {
+    contextOptions: {
+      requestWebgl2: true,   
+    },
+    shouldAnimate: true,
+    animation: false, timeline: false,
+    baseLayerPicker: false, homeButton: true,
+    sceneModePicker: false, navigationHelpButton: true,
+    geocoder: true, fullscreenButton: true,
+    infoBox: true, selectionIndicator: true,
+  })
+
+  viewer.imageryLayers.removeAll();
+  const provider = await Cesium.ArcGisMapServerImageryProvider.fromUrl(
+      'https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer'
+    );
+  viewer.imageryLayers.addImageryProvider(provider);
+
+  // 这些参数要在 return 之前设置，否则不会生效
+  viewer.scene.msaaSamples = 16;
+  viewer.scene.postProcessStages.fxaa.enabled = true;
+  viewer.resolutionScale = window.devicePixelRatio;
+  viewer.cesiumWidget.creditContainer.style.display = 'none';
+  viewer.scene.screenSpaceCameraController.zoomEventTypes = [
+    Cesium.CameraEventType.WHEEL, Cesium.CameraEventType.PINCH,
+  ];
+  viewer.scene.screenSpaceCameraController.zoomFactor = 5;
+
+  return viewer;
+}
+
+// ══════════════════════════════════════════════════
+// addOneSat — 轨道线材质固定（不跟 label 配色）
+// ══════════════════════════════════════════════════
+function addOneSat(viewer, meta, states, registry) {
+  if (!states||states.length<2) return null;
+
+  // 名称映射：按 objectName / objectId / noradId 做匹配
+  const rawKey = meta.objectName||meta.objectId||meta.name||'';
+  const mapped = Object.entries(DISPLAY_MAP).find(([k])=>
+    rawKey.toUpperCase().includes(k.toUpperCase()) ||
+    (meta.objectId||'').toUpperCase().includes(k.toUpperCase()) ||
+    (meta.noradId||'').includes(k)
+  );
+  const displayName = mapped?.[1]?.displayName || meta.objectName || meta.name || 'SAT';
+  const displayId   = mapped?.[1]?.displayId   || meta.objectId   || meta.noradId || rawKey;
+  meta = { ...meta, displayName, displayId };
+
+  // 区分图标
+  const isFYBB = displayId.toUpperCase().includes('FYBB');
+  const iconUrl = isFYBB ? FYBB_ICON_URL : CSS_ICON_URL;
+
+  // 轨道线颜色（固定）
+  // CSS/Musico → 青色；FYBB#1 → 绿色
+  const orbitColor = isFYBB
+    ? Cesium.Color.fromCssColorString('#3ddc84')
+    : Cesium.Color.fromCssColorString('#5aa9ff');
+
+  // label 名称颜色：中国空间站 #66ccff；FYBB#1 白色
+  const nameFillColor = isFYBB
+    ? Cesium.Color.fromCssColorString('#00b08d')
+    : Cesium.Color.fromCssColorString('#66ccff');
+  // ID 白色
+  const idFillColor = Cesium.Color.WHITE;
+
+  const sampledProp = new Cesium.SampledPositionProperty();
+  sampledProp.setInterpolationOptions({
+    interpolationDegree:5,
+    interpolationAlgorithm:Cesium.LagrangePolynomialApproximation,
+  });
+  const orbitPositions = [];
+  let startJD=null, stopJD=null;
+  for (const s of states) {
+    const iso = fixIso(s.timeUtc);
+    if (!iso) continue;
+    let jd; try { jd=Cesium.JulianDate.fromIso8601(iso); } catch(e){ continue; }
+    const xM=s.xKm*1000, yM=s.yKm*1000, zM=s.zKm*1000;
+    if (![xM,yM,zM].every(Number.isFinite)) continue;
+    const pos = new Cesium.Cartesian3(xM,yM,zM);
+    sampledProp.addSample(jd,pos);
+    orbitPositions.push(pos);
+    if (!startJD) startJD=Cesium.JulianDate.clone(jd);
+    stopJD=Cesium.JulianDate.clone(jd);
+  }
+  if (!startJD||orbitPositions.length<2) return null;
+
+  const sourcePrefix = (meta.refFrame||'').includes('TEME') ? 'tle' : 'oem';
+  const safeId = `${sourcePrefix}-${String(displayId).trim().toLowerCase().replace(/[^a-z0-9]/g,'-')}`;
+  const avail = new Cesium.TimeIntervalCollection([new Cesium.TimeInterval({start:startJD,stop:stopJD})]);
+
+  // 轨道线 
+  const orbitLine = viewer.entities.add({
+    id:`${safeId}-orbit`,
+    polyline:{
+      positions: orbitPositions,
+      width: 3,
+      arcType: Cesium.ArcType.NONE,
+      material: new Cesium.PolylineGlowMaterialProperty({
+        glowPower: 0.05,
+        color: orbitColor.withAlpha(0.55),
+      }),
+    },show:true,
+  });
+
+  // 卫星实体
+  const satEntity = viewer.entities.add({
+    id:`${safeId}-satellite`,
+    name: displayName,
+    availability: avail,
+    position: sampledProp,
+    orientation: new Cesium.VelocityOrientationProperty(sampledProp),
+    billboard:{
+      image: iconUrl, width:72, height:72,
+      scaleByDistance: new Cesium.NearFarScalar(1e6,2.0,2e8,0.45),
+      disableDepthTestDistance: Number.POSITIVE_INFINITY,
+      color: Cesium.Color.WHITE, show:true,
+    },
+    label:{
+      text: displayName,
+      fillColor: nameFillColor,
+      outlineColor: Cesium.Color.fromCssColorString('#0a3a5c'),
+      outlineWidth:4,
+      font:'600 18px sans-serif',
+      style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+      pixelOffset: new Cesium.Cartesian2(0,-28),
+      disableDepthTestDistance: Number.POSITIVE_INFINITY,
+      show:true,
+    },
+    path:{
+      resolution:60,
+      material: new Cesium.PolylineGlowMaterialProperty({
+        glowPower:0.30,
+        color: Cesium.Color.fromCssColorString('#e3b341').withAlpha(0.95),
+      }),
+      width:3, leadTime:2760, trailTime:2760, show:true,
+    },
+  });
+
+  // ID 短标签（白色）
+  const satLabel = viewer.entities.add({
+    id:`${safeId}-short-label`,
+    name:`${displayName}-id`,
+    availability: avail,
+    position: sampledProp,
+    label:{
+      text: displayId,
+      font:'500 18px sans-serif',
+      fillColor: idFillColor,
+      outlineColor: Cesium.Color.BLACK,
+      outlineWidth:4,
+      style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+      pixelOffset: new Cesium.Cartesian2(0,-45),
+      disableDepthTestDistance: Number.POSITIVE_INFINITY,
+      show:true,
+    },
+  });
+
+  const entry = {
+    key:safeId, meta,
+    sourceType: meta.sourceType || ((meta.refFrame||'').includes('TEME') ? 'tle' : 'oem'),
+    tleLine1: meta.tleLine1 || '',
+    tleLine2: meta.tleLine2 || '',
+    stats: computeStats(states),
+    allStates: states,
+    sampledProp, orbitLine, satEntity, satLabel, startJD, stopJD, nameFillColor, idFillColor,
+  };
+  registry.push(entry);
+  return entry;
+}
+
+// ══════════════════════════════════════════════════
+// 遮挡淡出
+// ══════════════════════════════════════════════════
+function addOcclusionFade(viewer, registry) {
+  const ellipsoid = viewer.scene.globe.ellipsoid;
+  viewer.scene.postUpdate.addEventListener(() => {
+    const camPos = viewer.camera.positionWC;
+    if (!camPos) return;
+    const occluder = new Cesium.Occluder(
+      new Cesium.BoundingSphere(Cesium.Cartesian3.ZERO, ellipsoid.minimumRadius), camPos
+    );
+    for (const item of registry) {
+      const satPos = item.sampledProp.getValue(viewer.clock.currentTime);
+      if (!satPos) continue;
+      const vis = occluder.isPointVisible(satPos);
+
+      if (item.satEntity?.billboard)
+        item.satEntity.billboard.color = Cesium.Color.WHITE.withAlpha(vis ? 1.0 : 0.3);
+
+      if (item.satEntity?.label)
+        item.satEntity.label.fillColor =
+          item.nameFillColor.withAlpha(vis ? 1.0 : 0.3);  
+
+      if (item.satLabel?.label)
+        item.satLabel.label.fillColor =
+          item.idFillColor.withAlpha(vis ? 1.0 : 0.3);  
+    }
+  });
+}
+
+// ══════════════════════════════════════════════════
+// 多星 UI 绑定
+// ══════════════════════════════════════════════════
+function bindMultiTargetUI(viewer, registry, sceneRect, timebarApi) {
+  G('hud').classList.add('on');
+  G('timebar').classList.add('on');
+
+  const psSel = G('psSatSelect'), satSelect = G('satSelect');
+  const orbitToggleBtn = G('btnToggleOtherOrbit');
+  const densityBtns = document.querySelectorAll('.bs[data-orbit-days]');
+  let current = registry[0];
+  let showOtherOrbit = true;
+  let orbitLinesEnabled = true;
+  let orbitDensityDays = 3;
+  const getWindowMode = () => current?.sourceType === 'tle' ? 'forward' : 'center';
+
+  const syncOrbitVisibility = () => {
+    registry.forEach(item => {
+      if (!item.orbitLine) return;
+      item.orbitLine.show = orbitLinesEnabled && !!current && (showOtherOrbit || item.key === current.key);
+    });
+    if (orbitToggleBtn) {
+      orbitToggleBtn.textContent = showOtherOrbit ? '隐藏另一卫星轨道线' : '显示另一卫星轨道线';
+    }
+  };
+
+  const applyOrbitDensity = days => {
+    orbitDensityDays = days;
+    const centerTimeIso = Cesium.JulianDate.toIso8601(viewer.clock.currentTime);
+    registry.forEach(item => rebuildOrbitLine(item, orbitDensityDays, centerTimeIso));
+    timebarApi?.setWindow(viewer.clock.currentTime, orbitDensityDays, { mode: getWindowMode() });
+    syncOrbitVisibility();
+  };
+
+  densityBtns.forEach(btn => btn.addEventListener('click', () => {
+    densityBtns.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    applyOrbitDensity(+btn.dataset.orbitDays || 1);
+  }));
+
+  orbitToggleBtn?.addEventListener('click', () => {
+    showOtherOrbit = !showOtherOrbit;
+    syncOrbitVisibility();
+  });
+
+  if (registry.length > 1) {
+    psSel.style.display = '';
+    satSelect.innerHTML = registry.map((item,i)=>
+      `<option value="${item.key}">${i+1}. ${item.meta.displayName} (${item.meta.displayId})</option>`
+    ).join('');
+  }
+  if (current) populatePanel(current.meta, current.stats);
+  densityBtns.forEach(b => b.classList.toggle('active', +b.dataset.orbitDays === orbitDensityDays));
+  applyOrbitDensity(orbitDensityDays);
+  syncOrbitVisibility();
+
+  satSelect?.addEventListener('change', e => {
+    const found = registry.find(x=>x.key===e.target.value);
+    if (found) {
+      current = found;
+      populatePanel(current.meta, current.stats);
+      timebarApi?.setWindow(viewer.clock.currentTime, orbitDensityDays, { mode: getWindowMode() });
+      applyOrbitDensity(orbitDensityDays);
+      syncOrbitVisibility();
+    }
+  });
+
+  const speedBtns = document.querySelectorAll('.bs[data-spd]');
+  speedBtns.forEach(btn => btn.addEventListener('click', ()=>{
+    speedBtns.forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    viewer.clock.multiplier = +btn.dataset.spd;
+  }));
+
+  G('togO').onchange = e => registry.forEach(item=>{
+    orbitLinesEnabled = e.target.checked;
+    if (item.orbitLine) item.orbitLine.show=orbitLinesEnabled && !!current && (showOtherOrbit || item.key===current.key);
+    if (item.satEntity?.path) item.satEntity.path.show=e.target.checked;
+  });
+  G('togS').onchange = e => registry.forEach(item=>{ if(item.satEntity?.billboard) item.satEntity.billboard.show=e.target.checked; });
+  G('togL').onchange = e => registry.forEach(item=>{
+    if(item.satEntity?.label) item.satEntity.label.show=e.target.checked;
+    if(item.satLabel?.label)  item.satLabel.label.show=e.target.checked;
+  });
+
+  let isTracking = false;
+  G('btnFollow').onclick = () => {
+    if (!current) return;
+    isTracking = !isTracking;
+    viewer.trackedEntity = isTracking ? current.satEntity : undefined;
+    G('btnFollow').classList.toggle('active', isTracking);
+    G('btnFollow').textContent = isTracking ? '取消跟踪' : '跟踪卫星';
+  };
+  G('btnFree').onclick = () => {
+    isTracking=false; viewer.trackedEntity=undefined;
+    G('btnFollow').classList.remove('active');
+    G('btnFollow').textContent='跟踪卫星';
+  };
+  G('btnHome').onclick = () => {
+    isTracking=false; viewer.trackedEntity=undefined;
+    G('btnFollow').classList.remove('active');
+    G('btnFollow').textContent='跟踪卫星';
+    viewer.flyTo(viewer.entities,{duration:2});
+  };
+  // 定位至影像区域
+  G('btnGotoScene').onclick = () => {
+    if (!sceneRect) return;
+    viewer.trackedEntity = undefined;
+    isTracking = false;
+    G('btnFollow').classList.remove('active');
+    G('btnFollow').textContent = '跟踪卫星';
+    viewer.camera.flyTo({
+      destination: Cesium.Rectangle.fromDegrees(113.72, 22.05, 114.60, 22.67),
+      duration: 2.0,
+    });
+  };
+
+  const tb=G('tb'), panel=G('panel');
+  tb.addEventListener('click',()=>{
+    const c=panel.classList.toggle('collapsed');
+    tb.classList.toggle('collapsed',c);
+    tb.textContent=c?'›':'‹';
+  });
+
+  // HUD Tick
+  viewer.clock.onTick.addEventListener(clk=>{
+    if (!current) return;
+    const pos=current.sampledProp.getValue(clk.currentTime);
+    if (!pos) return;
+    T('hX-', (pos.x/1000).toFixed(1));
+    T('hY-', (pos.y/1000).toFixed(1));
+    T('hZ-', (pos.z/1000).toFixed(1));
+    const r=Math.sqrt(pos.x**2+pos.y**2+pos.z**2);
+    T('hAlt-', (r/1000-6371).toFixed(1));
+    try { T('td', Cesium.JulianDate.toIso8601(clk.currentTime).replace('T',' ').substring(0,19)+' UTC'); } catch(e){}
+  });
+}
+
+// ══════════════════════════════════════════════════
+// 右侧面板：底图切换
+// ══════════════════════════════════════════════════
+function initBasemapSwitcher(viewer, sceneLayer) {
+  const LAYERS = {
+    'bm-osm': async () => new Cesium.UrlTemplateImageryProvider({
+      url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+      maximumLevel: 19,
+      credit: '© OpenStreetMap contributors',
+    }),
+    'bm-sat': async () => {
+      // 1.103+ 必须用 fromUrl
+      return await Cesium.ArcGisMapServerImageryProvider.fromUrl(
+        'https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer'
+      );
+    },
+    'bm-dark': async () => new Cesium.UrlTemplateImageryProvider({
+      url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
+      subdomains: ['a','b','c','d'],
+      maximumLevel: 18,
+      credit: '© OpenStreetMap © CARTO',
+    }),
+  };
+
+  Object.keys(LAYERS).forEach(id => {
+    const btn = G(id);
+    if (!btn) return;
+    btn.addEventListener('click', async () => {
+      const provider = await LAYERS[id]();
+      // 先移除除场景影像外的所有图层，再把新底图插到底层
+      for (let i = viewer.imageryLayers.length - 1; i >= 0; i--) {
+        const layer = viewer.imageryLayers.get(i);
+        if (!layer || layer._isSceneLayer) continue;
+        try { viewer.imageryLayers.remove(layer, true); } catch(e) { console.warn('remove layer failed', e); }
+      }
+      viewer.imageryLayers.addImageryProvider(provider, 0);
+      if (sceneLayer) {
+        try { viewer.imageryLayers.raiseToTop(sceneLayer); } catch(e) { console.warn('raiseToTop failed', e); }
+      }
+      document.querySelectorAll('.bm-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
+}
+
+// ══════════════════════════════════════════════════
+// 右侧面板：实时卫星状态
+// ══════════════════════════════════════════════════
+function initSatStatus(viewer, registry) {
+  const area = G('satStatusArea');
+  if (!area || !registry.length) return;
+
+  // 为每颗卫星生成一个卡片 DOM（只建一次）
+  const cards = registry.map(item => {
+    const isFYBB = item.meta.displayId.toUpperCase().includes('FYBB');
+    const dotColor = isFYBB ? '#3ddc84' : '#66ccff';
+    const card = document.createElement('div');
+    card.className = 'sat-card';
+    card.innerHTML = `
+      <div class="sat-card-hd">
+        <span class="dot" style="color:${dotColor}; background:${dotColor}"></span>
+        <span style="color:${dotColor}">${item.meta.displayName}</span>
+        <span style="color:#484f58; font-weight:400; font-size:10px">${item.meta.displayId}</span>
+      </div>
+      <div class="mr"><span class="mk">经度</span><span class="mv" id="rs-lon-${item.key}">-</span></div>
+      <div class="mr"><span class="mk">纬度</span><span class="mv" id="rs-lat-${item.key}">-</span></div>
+      <div class="mr"><span class="mk">高度 km</span><span class="mv cyan" id="rs-alt-${item.key}">-</span></div>
+      <div class="mr"><span class="mk">速度 km/s</span><span class="mv" id="rs-vel-${item.key}">-</span></div>
+      <div class="mr"><span class="mk">X km</span><span class="mv" id="rs-x-${item.key}">-</span></div>
+      <div class="mr"><span class="mk">Y km</span><span class="mv" id="rs-y-${item.key}">-</span></div>
+      <div class="mr"><span class="mk">Z km</span><span class="mv" id="rs-z-${item.key}">-</span></div>
+    `;
+    area.appendChild(card);
+    return { item, key: item.key };
+  });
+
+  // 每帧更新（复用已有 onTick，追加监听不影响原有 HUD）
+  viewer.clock.onTick.addEventListener(clk => {
+    for (const { item, key } of cards) {
+      const pos = item.sampledProp.getValue(clk.currentTime);
+      if (!pos) continue;
+
+      // ECI 位置
+      const x = pos.x / 1000, y = pos.y / 1000, z = pos.z / 1000;
+      const r = Math.sqrt(x*x + y*y + z*z);
+      const alt = (r - 6371).toFixed(1);
+
+      // 速度（对 sampledProp 两点差分估算）
+      const dt = 1; // 1秒
+      const jdNext = Cesium.JulianDate.addSeconds(clk.currentTime, dt, new Cesium.JulianDate());
+      const posNext = item.sampledProp.getValue(jdNext);
+      let velStr = '-';
+      if (posNext) {
+        const dx = (posNext.x - pos.x)/1000/dt;
+        const dy = (posNext.y - pos.y)/1000/dt;
+        const dz = (posNext.z - pos.z)/1000/dt;
+        velStr = Math.sqrt(dx*dx+dy*dy+dz*dz).toFixed(3);
+      }
+
+      // 经纬度（转 Cartographic）
+      let lonStr = '-', latStr = '-';
+      try {
+        const carto = Cesium.Cartographic.fromCartesian(pos);
+        lonStr = Cesium.Math.toDegrees(carto.longitude).toFixed(3) + '°';
+        latStr = Cesium.Math.toDegrees(carto.latitude).toFixed(3) + '°';
+      } catch(e) {}
+
+      T(`rs-lon-${key}`, lonStr);
+      T(`rs-lat-${key}`, latStr);
+      T(`rs-alt-${key}`, alt);
+      T(`rs-vel-${key}`, velStr);
+      T(`rs-x-${key}`, x.toFixed(1));
+      T(`rs-y-${key}`, y.toFixed(1));
+      T(`rs-z-${key}`, z.toFixed(1));
+    }
+  });
+
+  // 右侧面板收起按钮
+  const rtb = G('rtb'), rPanel = G('rPanel');
+  rtb?.addEventListener('click', () => {
+    const c = rPanel.classList.toggle('collapsed');
+    rtb.classList.toggle('collapsed', c);
+    rtb.textContent = c ? '‹' : '›';
+  });
+}
+
+// ══════════════════════════════════════════════════
+// 时间轴
+// ══════════════════════════════════════════════════
+function initTimebar(viewer, gStart, gStop) {
+  const slider=G('tbSlider'), progress=G('tbProgress');
+  const btnPP=G('tbPlayPause'), startEl=G('tbStart'), endEl=G('tbEnd');
+  if (!slider) return;
+  let rangeStart = Cesium.JulianDate.clone(gStart);
+  let rangeStop = Cesium.JulianDate.clone(gStop);
+  let totalSec = Cesium.JulianDate.secondsDifference(rangeStop, rangeStart);
+  const fmt=s=>s?String(Cesium.JulianDate.toIso8601(s)).replace('T',' ').substring(0,16):'-';
+  const syncLabels = () => {
+    startEl.textContent = fmt(rangeStart);
+    endEl.textContent = fmt(rangeStop);
+  };
+  const clampCurrentTime = () => {
+    if (Cesium.JulianDate.lessThan(viewer.clock.currentTime, rangeStart)) {
+      viewer.clock.currentTime = Cesium.JulianDate.clone(rangeStart);
+    } else if (Cesium.JulianDate.greaterThan(viewer.clock.currentTime, rangeStop)) {
+      viewer.clock.currentTime = Cesium.JulianDate.clone(rangeStop);
+    }
+  };
+  const syncSlider = () => {
+    const elapsed = Cesium.JulianDate.secondsDifference(viewer.clock.currentTime, rangeStart);
+    const ratio = totalSec > 0 ? Math.min(Math.max(elapsed / totalSec, 0), 1) : 0;
+    slider.value = String(Math.round(ratio * 10000));
+    progress.style.width = ratio * 100 + '%';
+  };
+  const setRange = (start, stop) => {
+    rangeStart = Cesium.JulianDate.clone(start);
+    rangeStop = Cesium.JulianDate.clone(stop);
+    totalSec = Cesium.JulianDate.secondsDifference(rangeStop, rangeStart);
+    syncLabels();
+    clampCurrentTime();
+    syncSlider();
+  };
+  syncLabels();
+  let wasPaused=false;
+  slider.addEventListener('mousedown',()=>{ wasPaused=!viewer.clock.shouldAnimate; viewer.clock.shouldAnimate=false; });
+  slider.addEventListener('touchstart',()=>{ wasPaused=!viewer.clock.shouldAnimate; viewer.clock.shouldAnimate=false; },{passive:true});
+  slider.addEventListener('input',()=>{
+    const ratio=+slider.value/10000;
+    viewer.clock.currentTime=Cesium.JulianDate.addSeconds(rangeStart,ratio*totalSec,new Cesium.JulianDate());
+    progress.style.width=ratio*100+'%';
+  });
+  slider.addEventListener('mouseup',()=>{ if(!wasPaused) viewer.clock.shouldAnimate=true; });
+  slider.addEventListener('touchend', ()=>{ if(!wasPaused) viewer.clock.shouldAnimate=true; });
+  btnPP?.addEventListener('click',()=>{
+    viewer.clock.shouldAnimate=!viewer.clock.shouldAnimate;
+    btnPP.textContent=viewer.clock.shouldAnimate?'⏸':'▶';
+  });
+  viewer.clock.onTick.addEventListener(clk=>{
+    const elapsed=Cesium.JulianDate.secondsDifference(clk.currentTime,rangeStart);
+    const ratio=totalSec>0 ? Math.min(Math.max(elapsed/totalSec,0),1) : 0;
+    slider.value=String(Math.round(ratio*10000));
+    progress.style.width=ratio*100+'%';
+  });
+
+  return {
+    setWindow(anchorTime, windowDays, options = {}, globalStart = gStart, globalStop = gStop) {
+      const mode = options.mode || 'center';
+      const halfWindowDays = Math.max(1, Number(windowDays) || 1);
+      const center = anchorTime ? Cesium.JulianDate.clone(anchorTime) : Cesium.JulianDate.clone(viewer.clock.currentTime);
+      const localStart = Cesium.JulianDate.clone(center);
+      const localStop = Cesium.JulianDate.clone(center);
+      if (mode === 'forward') {
+        Cesium.JulianDate.addDays(center, halfWindowDays, localStop);
+      } else {
+        Cesium.JulianDate.addDays(center, -halfWindowDays, localStart);
+        Cesium.JulianDate.addDays(center, halfWindowDays, localStop);
+      }
+      const clippedStart = Cesium.JulianDate.greaterThan(localStart, globalStart) ? localStart : globalStart;
+      const clippedStop = Cesium.JulianDate.lessThan(localStop, globalStop) ? localStop : globalStop;
+      setRange(clippedStart, clippedStop);
+    }
+  };
+}
+
+// ══════════════════════════════════════════════════
+// 遥感影像叠加
+// ══════════════════════════════════════════════════
+function buildPinIcon(color) {
+  const c=document.createElement('canvas'); c.width=36; c.height=36;
+  const ctx=c.getContext('2d');
+  ctx.beginPath(); ctx.arc(18,18,15,0,Math.PI*2);
+  ctx.fillStyle=color; ctx.fill();
+  ctx.strokeStyle='#ffffff'; ctx.lineWidth=2.5; ctx.stroke();
+  ctx.beginPath(); ctx.arc(18,18,4,0,Math.PI*2);
+  ctx.fillStyle='#ffffff'; ctx.fill();
+  return c.toDataURL();
+}
+
+function addImageryOverlay(viewer) {
+  const SCENE_RECT = Cesium.Rectangle.fromDegrees(113.82, 22.15, 114.50, 22.57);
+
+  // 香港地图底图（HK政府 WMS）,之后可替换为更高分辨率的遥感影像（如 FYBB#1 采集的图）,要求支持 CORS
+  // 将场景影像作为一个可控的 ImageryLayer 添加并置顶显示
+  const imageryLayer  = viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({
+    url: 'https://mapapi.geodata.gov.hk/gs/api/v1.0.0/xyz/imagery/wgs84/{z}/{x}/{y}.png',
+    minimumLevel:0, maximumLevel:19,
+    credit:'Lands Department, HKSAR',
+    rectangle: SCENE_RECT,
+  }));
+  // 标记为场景图层以便在切换底图时保留
+  try { imageryLayer._isSceneLayer = true; } catch(e) { /* ignore */ }
+  // 确保此影像图层在所有底图之上显示
+  try { viewer.imageryLayers.raiseToTop(imageryLayer); } catch(e) { console.warn('raiseToTop failed', e); }
+  // 强制不透明（可按需调整）
+  imageryLayer.alpha = 1.0;
+
+  const PINLON=114.18, PINLAT=22.35;
+  const scenePin = viewer.entities.add({
+    id:'fybb1-scene-pin',
+    name:'FYBB#1 获取区域',
+    position: Cesium.Cartesian3.fromDegrees(PINLON, PINLAT, 0),
+    billboard:{
+      image: buildPinIcon('#00b08d'),
+      width:30, height:30,
+      verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+      disableDepthTestDistance: Number.POSITIVE_INFINITY,
+    },
+    label:{
+      text:'FYBB#1\n获取区域',
+      font:'500 16px sans-serif',
+      fillColor: Cesium.Color.fromCssColorString('#a3cf62'),
+      outlineColor: Cesium.Color.BLACK,
+      outlineWidth:3,
+      style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+      pixelOffset: new Cesium.Cartesian2(0,-42),
+      disableDepthTestDistance: Number.POSITIVE_INFINITY,
+      show:true,
+    },
+    description:`<div style="color:#00b08d;font-family:sans-serif;font-size:13px;padding:4px">
+      <b>FYBB#1 雄彬一号</b><br><br>获取区域：Hong Kong<br><br>时间段：2026-05-09 ~ 05-15</div>`,
+  });
+
+  viewer.entities.add({
+    id:'fybb1-scene-border',
+    rectangle:{
+      coordinates: SCENE_RECT,
+      fill:false, outline:true,
+      outlineColor: Cesium.Color.fromCssColorString('#3ddc84').withAlpha(0.85),
+      outlineWidth:2, height:0,
+    },
+  });
+
+  viewer.screenSpaceEventHandler.setInputAction(movement=>{
+    const picked=viewer.scene.pick(movement.position);
+    if (Cesium.defined(picked)&&picked.id?.id==='fybb1-scene-pin') {
+      viewer.camera.flyTo({
+        destination: Cesium.Rectangle.fromDegrees(113.72,22.05,114.60,22.67),
+        duration:2.0,
+      });
+    }
+  }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+
+  return { scenePin, rect: SCENE_RECT, sceneLayer: imageryLayer };
+}
+
+// ══════════════════════════════════════════════════
+// INIT 初始化
+// ══════════════════════════════════════════════════
+async function init() {
+  const viewer = await createViewer();
+  const controller = viewer.scene.screenSpaceCameraController;
+  controller.minimumZoomDistance = 100000;
+  controller.maximumZoomDistance = 1.5e8;
+  controller.inertiaZoom = 0.4;
+  controller.zoomFactor  = 3.0;
+
+  const registry = [];
+
+  // ── 1. CSS OEM（中国空间站 / Musico）──
+  try {
+    console.log('[Demo] fetching OEM ./data/CSS_OEM.dat');
+    const resp = await fetch('./data/CSS_OEM.dat');
+    console.log('[Demo] OEM resp', resp && resp.status, 'ok=', resp && resp.ok);
+    if (!resp.ok) {
+      const txt = await resp.text().catch(()=>'<no body>');
+      console.warn('[Demo] OEM fetch not ok', resp.status, txt);
+      throw new Error(`OEM fetch failed: ${resp.status}`);
+    }
+    const text = await resp.text();
+    const oem  = parseOemText(text);
+    console.log('[Demo] OEM parsed states:', oem.states.length);
+    if (oem.states.length < 2) throw new Error('OEM 数据为空');
+    addOneSat(viewer, { ...oem.meta, sourceType: 'oem' }, oem.states, registry);
+  } catch(e) {
+    console.warn('[Demo] OEM load error', e && e.message);
+    showErr('CSS OEM 加载失败', `请确认 ./data/CSS_OEM.dat 存在\n${e.message}`);
+    return;
+  }
+
+  // ── 2. FYBB#1 TLE ──
+  try {
+    // 优先 fetch 文件，失败则用硬编码字符串
+    let tleRaw = FYBB1_TLE_RAW;
+    try {
+      console.log('[Demo] fetching TLE ./data/FYBB1.tle');
+      const resp = await fetch('./data/FYBB1.tle');
+      console.log('[Demo] TLE resp', resp && resp.status, 'ok=', resp && resp.ok);
+      if (resp.ok) tleRaw = await resp.text(); else console.warn('[Demo] TLE fetch not ok', resp.status);
+    } catch(_) { console.warn('[Demo] TLE fetch error, using hardcoded TLE'); }
+
+    const sats = parseTleBlocks(tleRaw);
+    console.log('[Demo] parsed TLE sats:', sats.length);
+    if (!sats.length) throw new Error('TLE 解析失败');
+    for (const sat of sats) {
+      console.log('[Demo] TLE sat:', sat.name, sat.noradId);
+      if (!sat.line1||!sat.line2) continue;
+      const states = tleToStatesWindowed(sat, 3, Cesium.JulianDate.toIso8601(viewer.clock.currentTime));
+      console.log('[Demo] tleToStatesWindowed returned', states.length, 'states');
+      if (states.length < 2) continue;
+      addOneSat(viewer,
+        { objectName: sat.name||'FYBB#1', objectId: sat.noradId,
+          sourceType: 'tle', tleLine1: sat.line1, tleLine2: sat.line2,
+          centerName:'EARTH', refFrame:'TEME-ECEF', timeSystem:'UTC',
+          startTime:states[0].timeUtc, stopTime:states[states.length-1].timeUtc },
+        states, registry
+      );
+    }
+  } catch(e) {
+    console.warn('FYBB#1 TLE 加载失败', e);
+  }
+
+  if (!registry.length) { showErr('无有效轨道数据'); return; }
+
+  // ── 时间轴范围：两星共存段，前后3天，默认为当前时刻 ──
+  let gStart = registry.reduce((a,b)=>
+    Cesium.JulianDate.greaterThan(a, b.startJD) ? a : b.startJD,   // 取最晚的 startJD
+    registry[0].startJD
+  );
+  let gStop = registry.reduce((a,b)=>
+    Cesium.JulianDate.lessThan(a, b.stopJD) ? a : b.stopJD,        // 取最早的 stopJD
+    registry[0].stopJD
+  );
+  // 如交集为空（两星完全不重叠），退回并集并警告
+  if (Cesium.JulianDate.greaterThan(gStart, gStop)) {
+    console.warn('两星时间段无重叠，退回并集显示');
+    gStart = registry.reduce((a,b)=>Cesium.JulianDate.lessThan(a,b.startJD)?a:b.startJD, registry[0].startJD);
+    gStop  = registry.reduce((a,b)=>Cesium.JulianDate.greaterThan(a,b.stopJD)?a:b.stopJD, registry[0].stopJD);
+  }
+  viewer.clock.startTime   = Cesium.JulianDate.clone(gStart);
+  viewer.clock.stopTime    = Cesium.JulianDate.clone(gStop);
+  // 默认定位到当前时刻
+  viewer.clock.currentTime = Cesium.JulianDate.fromDate(new Date());
+  viewer.clock.clockRange  = Cesium.ClockRange.LOOP_STOP;
+  viewer.clock.multiplier  = 10;
+  viewer.clock.shouldAnimate = true;
+
+  // ── 遥感影像 ──
+  const { scenePin, rect: sceneRect, sceneLayer } = addImageryOverlay(viewer);
+
+  // ── UI ──
+  addOcclusionFade(viewer, registry);
+  try { initSatStatus(viewer, registry); } catch(e) { console.warn('initSatStatus error', e); }
+  // 初始化底图切换器并传入场景影像 layer，以便切换底图时保留并置顶该图层
+  try { initBasemapSwitcher(viewer, sceneLayer); } catch(e) { console.warn('initBasemapSwitcher error', e); }
+  const timebarApi = initTimebar(viewer, gStart, gStop);
+  bindMultiTargetUI(viewer, registry, sceneRect, timebarApi);
+
+  viewer.flyTo(viewer.entities, {duration:2});
+}
+
+init();
+</script>
+</body>
+</html>
