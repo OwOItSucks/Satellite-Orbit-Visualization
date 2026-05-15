@@ -11,6 +11,7 @@
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{width:100%;height:100%;background:#0d1117;overflow:hidden}
 #cesiumContainer{width:100vw;height:100vh;position:absolute;top:0;left:0}
+:root{--panel-w:390px}
 
 /* ══════════════════════════════════════════
    BANNER
@@ -53,7 +54,7 @@ html,body{width:100%;height:100%;background:#0d1117;overflow:hidden}
 /* ══ PANEL ══ */
 #panel{
   position:absolute;top:42px;left:0;
-  width:280px;height:calc(100vh - 42px);
+  width:var(--panel-w);height:calc(100vh - 42px);
   background:rgba(13,17,23,.93);backdrop-filter:blur(10px);
   border-right:1px solid #30363d;
   display:flex;flex-direction:column;
@@ -118,28 +119,30 @@ html,body{width:100%;height:100%;background:#0d1117;overflow:hidden}
 .bm-btn.active { background: #1a3654; border-color: #58a6ff; color: #58a6ff; }
 .bm-btn .bm-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
 
-#panel.collapsed{transform:translateX(-280px)}
-.ph{padding:14px 16px 10px;border-bottom:1px solid #21262d;display:flex;align-items:center;gap:10px}
+#panel.collapsed{transform:translateX(calc(-1 * var(--panel-w)))}
+.panel-resizer{position:absolute;top:0;right:0;width:10px;height:100%;cursor:ew-resize;z-index:5;background:transparent}
+.panel-resizer:hover,.panel-resizer.dragging{background:linear-gradient(180deg,rgba(88,166,255,.10),rgba(88,166,255,.04))}
+.ph{padding:12px 14px 8px;border-bottom:1px solid #21262d;display:flex;align-items:center;gap:8px}
 .ph-title{font-size:14px;font-weight:700;color:#e6edf3}
 .ph-sub{font-size:11px;color:#8b949e;margin-top:2px}
-.ps{padding:12px 16px;border-bottom:1px solid #21262d}
-.sl{font-size:10px;font-weight:700;letter-spacing:.08em;color:#484f58;text-transform:uppercase;margin-bottom:8px}
-.mr{display:flex;justify-content:space-between;margin-bottom:4px;gap:8px}
+.ps{padding:10px 12px;border-bottom:1px solid #21262d}
+.sl{font-size:10px;font-weight:700;letter-spacing:.08em;color:#484f58;text-transform:uppercase;margin-bottom:6px}
+.mr{display:flex;justify-content:space-between;margin-bottom:3px;gap:8px}
 .mk{font-size:11px;color:#8b949e}
-.mv{font-size:11px;color:#e6edf3;font-weight:500;text-align:right;max-width:155px;word-break:break-all}
+.mv{font-size:11px;color:#e6edf3;font-weight:500;text-align:right;max-width:190px;word-break:break-all}
 .mv.cyan{color:#39d0c8}
 .mv.badge{background:#1f3248;color:#58a6ff;padding:1px 7px;border-radius:999px;font-size:10px;font-weight:600}
-.kg{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px}
-.kc{background:#161b22;border:1px solid #30363d;border-radius:6px;padding:8px}
+.kg{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:2px}
+.kc{background:#161b22;border:1px solid #30363d;border-radius:6px;padding:6px}
 .kl{font-size:10px;color:#8b949e;margin-bottom:3px}
-.kv{font-size:13px;font-weight:700;color:#e6edf3;font-variant-numeric:tabular-nums}
+.kv{font-size:12px;font-weight:700;color:#e6edf3;font-variant-numeric:tabular-nums}
 .kv.cyan{color:#39d0c8}.kv.gold{color:#e3b341}.kv.green{color:#3fb950}
-.sr{display:flex;gap:6px;flex-wrap:wrap}
-.bs{flex:1;padding:5px 0;background:#21262d;border:1px solid #30363d;border-radius:5px;color:#8b949e;font-size:11px;font-weight:700;cursor:pointer;transition:all .15s}
+.sr{display:flex;gap:4px;flex-wrap:wrap}
+.bs{flex:1;padding:4px 0;background:#21262d;border:1px solid #30363d;border-radius:5px;color:#8b949e;font-size:10px;font-weight:700;cursor:pointer;transition:all .15s;min-width:0}
 .bs:hover{background:#30363d;color:#e6edf3}
 .bs.active{background:#58a6ff;border-color:#58a6ff;color:#fff}
-.tl{display:flex;flex-direction:column;gap:6px}
-.ti{display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background:#161b22;border:1px solid #30363d;border-radius:6px;font-size:12px;color:#c9d1d9}
+.tl{display:flex;flex-direction:column;gap:4px}
+.ti{display:flex;align-items:center;justify-content:space-between;padding:5px 8px;background:#161b22;border:1px solid #30363d;border-radius:6px;font-size:11px;color:#c9d1d9}
 .ti label{cursor:pointer;display:flex;align-items:center;gap:6px}
 .sw{position:relative;width:32px;height:18px}
 .sw input{opacity:0;width:0;height:0}
@@ -148,6 +151,16 @@ html,body{width:100%;height:100%;background:#0d1117;overflow:hidden}
 .sw input:checked+.tr{background:#58a6ff}
 .sw input:checked+.tr::before{transform:translateX(14px)}
 .al{display:flex;flex-direction:column;gap:6px}
+.al-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.al-actions .ba{padding:6px 8px;font-size:11px;text-align:center}
+.combo-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.95fr);gap:8px}
+.combo-box{background:#161b22;border:1px solid #30363d;border-radius:8px;padding:8px}
+.combo-title{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#8b949e;margin-bottom:6px}
+.sat-orbit-row{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(150px,.75fr);gap:8px;align-items:start}
+.sat-select-cell,.orbit-toggle-cell{background:#161b22;border:1px solid #30363d;border-radius:8px;padding:8px}
+.orbit-toggle-cell .ba{padding:6px 8px;font-size:11px;text-align:center}
+.speed-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px}
+.layer-stack{gap:4px}
 .ba{width:100%;padding:7px 12px;background:#21262d;border:1px solid #30363d;border-radius:6px;color:#c9d1d9;font-size:12px;font-weight:500;cursor:pointer;text-align:left;transition:all .15s}
 .ba:hover{background:#30363d;color:#e6edf3}
 .ba.primary{background:#1a3654;border-color:#58a6ff;color:#58a6ff}
@@ -157,7 +170,11 @@ html,body{width:100%;height:100%;background:#0d1117;overflow:hidden}
 .ba.scene{background:#0e2a2f;border:1px solid #ffffff55;color:#e6edf3}
 .ba.scene:hover{background:#153a40;border-color:#fff;color:#fff}
 
-#tb{position:absolute;top:calc(42px + 50% - 24px);left:280px;
+@media (max-width: 420px) {
+  .sat-orbit-row{grid-template-columns:1fr}
+}
+
+#tb{position:absolute;top:calc(42px + 50% - 24px);left:var(--panel-w);
   width:20px;height:48px;background:rgba(13,17,23,.93);
   border:1px solid #30363d;border-left:none;border-radius:0 6px 6px 0;
   cursor:pointer;display:flex;align-items:center;justify-content:center;
@@ -205,13 +222,7 @@ html,body{width:100%;height:100%;background:#0d1117;overflow:hidden}
 <button id="tb" title="收起">&#8249;</button>
 
 <div id="panel">
-  <div class="ph">
-    <div>
-      <div class="ph-title" id="pTitle">Orbit Viewer</div>
-      <div class="ph-sub" id="pSub">…</div>
-    </div>
-  </div>
-
+  <div id="panelResizer" class="panel-resizer" title="拖动调整宽度"></div>
   <!-- 卫星信息 -->
   <div class="ps">
     <div class="sl">卫星信息</div>
@@ -235,37 +246,55 @@ html,body{width:100%;height:100%;background:#0d1117;overflow:hidden}
     <div class="mr"><span class="mk">结束</span><span class="mv" id="mStop-"></span></div>
   </div>
 
-  <!-- 播放速度 -->
+  <!-- 播放速度 | 时间窗口 + 图层 -->
   <div class="ps">
-    <div class="sl">播放速度</div>
-    <div class="sr">
-      <button class="bs active" data-spd="10">10x</button>
-      <button class="bs" data-spd="100">100x</button>
-      <button class="bs" data-spd="500">500x</button>
-      <button class="bs" data-spd="1000">1000x</button>
+    <div class="sl">播放与显示</div>
+    <div class="combo-grid">
+      <div class="combo-box">
+        <div class="combo-title">播放速度 | 时间窗口</div>
+        <div class="sr speed-grid">
+          <button class="bs active" data-spd="10">10x</button>
+          <button class="bs" data-spd="100">100x</button>
+          <button class="bs" data-spd="500">500x</button>
+          <button class="bs" data-spd="1000">1000x</button>
+        </div>
+        <div class="combo-title" style="margin-top:8px">时间窗口 | 轨迹密度</div>
+        <div class="sr">
+          <button class="bs active" data-orbit-days="1">1天</button>
+          <button class="bs" data-orbit-days="3">3天</button>
+          <button class="bs" data-orbit-days="7">7天</button>
+        </div>
+      </div>
+      <div class="combo-box">
+        <div class="combo-title">图层</div>
+        <div class="tl layer-stack">
+          <div class="ti"><label for="togO">轨道线</label><label class="sw"><input type="checkbox" id="togO" checked><span class="tr"></span></label></div>
+          <div class="ti"><label for="togS">卫星图标</label><label class="sw"><input type="checkbox" id="togS" checked><span class="tr"></span></label></div>
+          <div class="ti"><label for="togL">标签</label><label class="sw"><input type="checkbox" id="togL" checked><span class="tr"></span></label></div>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- 图层开关 -->
+  <!-- 卫星选择 + 轨道线 -->
   <div class="ps">
-    <div class="sl">图层</div>
-    <div class="tl">
-      <div class="ti"><label for="togO">轨道线</label><label class="sw"><input type="checkbox" id="togO" checked><span class="tr"></span></label></div>
-      <div class="ti"><label for="togS">卫星图标</label><label class="sw"><input type="checkbox" id="togS" checked><span class="tr"></span></label></div>
-      <div class="ti"><label for="togL">标签</label><label class="sw"><input type="checkbox" id="togL" checked><span class="tr"></span></label></div>
+    <div class="sl">视角切换</div>
+    <div class="sat-orbit-row">
+      <div class="sat-select-cell" id="psSatSelect" style="display:none">
+        <div class="combo-title">卫星选择</div>
+        <select id="satSelect" class="ba" style="width:100%"></select>
+      </div>
+      <div class="orbit-toggle-cell">
+        <div class="combo-title">聚焦轨道</div>
+        <button class="ba" id="btnToggleOtherOrbit">显示另一卫星轨道线</button>
+      </div>
     </div>
-  </div>
-
-  <!-- 卫星选择（多星时出现） -->
-  <div class="ps" id="psSatSelect" style="display:none">
-    <div class="sl">卫星选择</div>
-    <select id="satSelect" class="ba" style="width:100%"></select>
   </div>
 
   <!-- 操作 -->
   <div class="ps">
     <div class="sl">操作</div>
-    <div class="al">
+    <div class="al al-actions">
       <button class="ba primary" id="btnHome">回到全局视角</button>
       <button class="ba" id="btnFollow">跟踪卫星</button>
       <button class="ba" id="btnFree">退出跟踪</button>
@@ -273,23 +302,6 @@ html,body{width:100%;height:100%;background:#0d1117;overflow:hidden}
     </div>
   </div>
 
-  <!-- 轨道线切换 -->
-  <div class="ps">
-    <div class="sl">轨道线</div>
-    <div class="al">
-      <button class="ba" id="btnToggleOtherOrbit">显示另一卫星轨道线</button>
-    </div>
-  </div>
-
-  <!-- 时间窗口 | 轨迹密度 -->
-  <div class="ps">
-    <div class="sl">时间窗口 | 轨迹密度</div>
-    <div class="sr">
-      <button class="bs active" data-orbit-days="1">1天</button>
-      <button class="bs" data-orbit-days="3">3天</button>
-      <button class="bs" data-orbit-days="7">7天</button>
-    </div>
-  </div>
 </div>
 
 <!-- 右侧收起 Tab -->
@@ -426,6 +438,49 @@ function initBasemapSwitcher(viewer, imageryLayer) {
 const G = id => document.getElementById(id);
 const T = (id, v) => { const e = G(id); if (e) e.textContent = v ?? ''; };
 
+function initPanelResize(panel) {
+  if (!panel) return;
+  const root = document.documentElement;
+  const minW = 340;
+  const maxW = 520;
+  const applyWidth = w => {
+    const next = Math.max(minW, Math.min(maxW, Math.round(w)));
+    root.style.setProperty('--panel-w', `${next}px`);
+  };
+  applyWidth(panel.getBoundingClientRect().width || 390);
+
+  const grip = G('panelResizer');
+  let dragging = false;
+  let startX = 0;
+  let startW = 0;
+
+  const onMove = e => {
+    if (!dragging) return;
+    const delta = e.clientX - startX;
+    applyWidth(startW + delta);
+  };
+  const stopDrag = () => {
+    if (!dragging) return;
+    dragging = false;
+    grip?.classList.remove('dragging');
+    document.body.style.cursor = '';
+    window.removeEventListener('pointermove', onMove);
+    window.removeEventListener('pointerup', stopDrag);
+  };
+
+  grip?.addEventListener('pointerdown', e => {
+    dragging = true;
+    startX = e.clientX;
+    startW = panel.getBoundingClientRect().width;
+    grip.setPointerCapture?.(e.pointerId);
+    grip.classList.add('dragging');
+    document.body.style.cursor = 'ew-resize';
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', stopDrag);
+    e.preventDefault();
+  });
+}
+
 function showErr(msg, hint) {
   T('eText', msg); T('eHint', hint || '');
   G('err').classList.add('on');
@@ -502,6 +557,14 @@ function rebuildOrbitLine(entry, days, centerTimeIso) {
   let positions = [];
   if (entry.sourceType === 'tle' && entry.tleLine1 && entry.tleLine2) {
     const states = tleToStatesWindowed({ line1: entry.tleLine1, line2: entry.tleLine2 }, preset.windowDays, centerTimeIso);
+    if (states.length >= 2) {
+      const first = Cesium.JulianDate.fromIso8601(states[0].timeUtc);
+      const last = Cesium.JulianDate.fromIso8601(states[states.length - 1].timeUtc);
+      if (first && last) {
+        entry.startJD = Cesium.JulianDate.clone(first);
+        entry.stopJD = Cesium.JulianDate.clone(last);
+      }
+    }
     positions = samplePositions(states, preset.stepMin);
   } else if (entry.sampledProp) {
     positions = sampleOrbitPositions(entry, centerTimeIso, preset.windowDays, preset.stepMin, 'center');
@@ -533,8 +596,6 @@ function computeStats(states) {
   };
 }
 function populatePanel(meta, stats) {
-  T('pTitle', meta.displayId || meta.objectId || meta.name || 'Orbit Viewer');
-  T('pSub', `${stats.count ?? '-'} 个历元`);
   const nameEl = G('mName-');
   if (nameEl) {
     nameEl.textContent = meta.displayName || meta.objectName || '-';
@@ -977,7 +1038,9 @@ function bindMultiTargetUI(viewer, registry, sceneRect, timebarApi) {
     orbitDensityDays = days;
     const centerTimeIso = Cesium.JulianDate.toIso8601(viewer.clock.currentTime);
     registry.forEach(item => rebuildOrbitLine(item, orbitDensityDays, centerTimeIso));
-    timebarApi?.setWindow(viewer.clock.currentTime, orbitDensityDays, { mode: getWindowMode() });
+    const sourceStart = current?.startJD || gStart;
+    const sourceStop = current?.stopJD || gStop;
+    timebarApi?.setWindow(viewer.clock.currentTime, orbitDensityDays, { mode: getWindowMode() }, sourceStart, sourceStop);
     syncOrbitVisibility();
   };
 
@@ -1008,7 +1071,9 @@ function bindMultiTargetUI(viewer, registry, sceneRect, timebarApi) {
     if (found) {
       current = found;
       populatePanel(current.meta, current.stats);
-      timebarApi?.setWindow(viewer.clock.currentTime, orbitDensityDays, { mode: getWindowMode() });
+      const sourceStart = current.startJD || gStart;
+      const sourceStop = current.stopJD || gStop;
+      timebarApi?.setWindow(viewer.clock.currentTime, orbitDensityDays, { mode: getWindowMode() }, sourceStart, sourceStop);
       applyOrbitDensity(orbitDensityDays);
       syncOrbitVisibility();
     }
@@ -1285,6 +1350,9 @@ function initTimebar(viewer, gStart, gStop) {
       const clippedStart = Cesium.JulianDate.greaterThan(localStart, globalStart) ? localStart : globalStart;
       const clippedStop = Cesium.JulianDate.lessThan(localStop, globalStop) ? localStop : globalStop;
       setRange(clippedStart, clippedStop);
+      viewer.clock.startTime = Cesium.JulianDate.clone(clippedStart);
+      viewer.clock.stopTime = Cesium.JulianDate.clone(clippedStop);
+      viewer.clock.clockRange = Cesium.ClockRange.LOOP_STOP;
     }
   };
 }
@@ -1380,6 +1448,7 @@ async function init() {
   controller.maximumZoomDistance = 1.5e8;
   controller.inertiaZoom = 0.4;
   controller.zoomFactor  = 3.0;
+  initPanelResize(G('panel'));
 
   const registry = [];
 
