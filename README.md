@@ -24,7 +24,7 @@ python -m http.server 8080
 
 ## Data Files
 
-Place the following under `./data/` relative to `demo2.html`:
+Place the following under `./data/` relative to `index.html`:
 
 | File | Description |
 |---|---|
@@ -86,7 +86,7 @@ served directly from the Cesium CDN bundle. No Cesium Ion account is needed.
 ---
 
 ## Project Structure
-demo2.html ← self-contained demo (HTML + CSS + JS, ~1600 lines)
+index.html ← self-contained demo (HTML + CSS + JS, ~1600 lines)
 data/   
 CSS_OEM.dat ← Musico orbit data (CCSDS OEM)   
 FYBB1.tle ← FYBB#1 TLE (optional)
