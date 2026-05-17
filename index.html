@@ -42,13 +42,6 @@ html,body{width:100%;height:100%;background:#0d1117;overflow:hidden}
   color: #00b08d;   /* 青绿色*/
 }
 
-#banner .b-badge{
-  font-size:10px;font-weight:600;
-  background:#1a3654;color:#58a6ff;
-  border:1px solid #1f4172;border-radius:999px;
-  padding:2px 9px;letter-spacing:.05em;
-}
-
 .cesium-widget-credits,.cesium-credit-logoContainer,.cesium-credit-textContainer{display:none!important}
 
 /* ══ PANEL ══ */
@@ -122,27 +115,27 @@ html,body{width:100%;height:100%;background:#0d1117;overflow:hidden}
 #panel.collapsed{transform:translateX(calc(-1 * var(--panel-w)))}
 .panel-resizer{position:absolute;top:0;right:0;width:10px;height:100%;cursor:ew-resize;z-index:5;background:transparent}
 .panel-resizer:hover,.panel-resizer.dragging{background:linear-gradient(180deg,rgba(88,166,255,.10),rgba(88,166,255,.04))}
-.ph{padding:12px 14px 8px;border-bottom:1px solid #21262d;display:flex;align-items:center;gap:8px}
+.ph{padding:10px 12px 6px;border-bottom:1px solid #21262d;display:flex;align-items:center;gap:6px}
 .ph-title{font-size:14px;font-weight:700;color:#e6edf3}
 .ph-sub{font-size:11px;color:#8b949e;margin-top:2px}
-.ps{padding:10px 12px;border-bottom:1px solid #21262d}
-.sl{font-size:10px;font-weight:700;letter-spacing:.08em;color:#484f58;text-transform:uppercase;margin-bottom:6px}
-.mr{display:flex;justify-content:space-between;margin-bottom:3px;gap:8px}
+.ps{padding:8px 10px;border-bottom:1px solid #21262d}
+.sl{font-size:10px;font-weight:700;letter-spacing:.06em;color:#484f58;text-transform:uppercase;margin-bottom:4px}
+.mr{display:flex;justify-content:space-between;margin-bottom:2px;gap:8px}
 .mk{font-size:11px;color:#8b949e}
 .mv{font-size:11px;color:#e6edf3;font-weight:500;text-align:right;max-width:190px;word-break:break-all}
 .mv.cyan{color:#39d0c8}
 .mv.badge{background:#1f3248;color:#58a6ff;padding:1px 7px;border-radius:999px;font-size:10px;font-weight:600}
-.kg{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:2px}
-.kc{background:#161b22;border:1px solid #30363d;border-radius:6px;padding:6px}
-.kl{font-size:10px;color:#8b949e;margin-bottom:3px}
-.kv{font-size:12px;font-weight:700;color:#e6edf3;font-variant-numeric:tabular-nums}
+.kg{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:2px}
+.kc{background:#161b22;border:1px solid #30363d;border-radius:6px;padding:5px}
+.kl{font-size:10px;color:#8b949e;margin-bottom:2px}
+.kv{font-size:11px;font-weight:700;color:#e6edf3;font-variant-numeric:tabular-nums}
 .kv.cyan{color:#39d0c8}.kv.gold{color:#e3b341}.kv.green{color:#3fb950}
 .sr{display:flex;gap:4px;flex-wrap:wrap}
-.bs{flex:1;padding:4px 0;background:#21262d;border:1px solid #30363d;border-radius:5px;color:#8b949e;font-size:10px;font-weight:700;cursor:pointer;transition:all .15s;min-width:0}
+.bs{flex:1;padding:3px 0;background:#21262d;border:1px solid #30363d;border-radius:5px;color:#8b949e;font-size:10px;font-weight:700;cursor:pointer;transition:all .15s;min-width:0}
 .bs:hover{background:#30363d;color:#e6edf3}
 .bs.active{background:#58a6ff;border-color:#58a6ff;color:#fff}
 .tl{display:flex;flex-direction:column;gap:4px}
-.ti{display:flex;align-items:center;justify-content:space-between;padding:5px 8px;background:#161b22;border:1px solid #30363d;border-radius:6px;font-size:11px;color:#c9d1d9}
+.ti{display:flex;align-items:center;justify-content:space-between;padding:4px 7px;background:#161b22;border:1px solid #30363d;border-radius:6px;font-size:11px;color:#c9d1d9}
 .ti label{cursor:pointer;display:flex;align-items:center;gap:6px}
 .sw{position:relative;width:32px;height:18px}
 .sw input{opacity:0;width:0;height:0}
@@ -150,12 +143,18 @@ html,body{width:100%;height:100%;background:#0d1117;overflow:hidden}
 .tr::before{content:'';position:absolute;left:2px;top:2px;width:14px;height:14px;background:#fff;border-radius:50%;transition:transform .18s}
 .sw input:checked+.tr{background:#58a6ff}
 .sw input:checked+.tr::before{transform:translateX(14px)}
-.al{display:flex;flex-direction:column;gap:6px}
+.al{display:flex;flex-direction:column;gap:5px}
 .al-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
-.al-actions .ba{padding:6px 8px;font-size:11px;text-align:center}
+.al-actions .ba{padding:5px 6px;font-size:10px;text-align:center}
 .combo-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.95fr);gap:8px}
-.combo-box{background:#161b22;border:1px solid #30363d;border-radius:8px;padding:8px}
+.combo-box{background:#161b22;border:1px solid #30363d;border-radius:8px;padding:7px}
 .combo-title{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#8b949e;margin-bottom:6px}
+.orbit-brightness-box{margin-top:6px}
+.orbit-brightness-row{display:flex;align-items:center;gap:10px}
+.orbit-brightness-row input[type="range"]{width:100%;height:4px;-webkit-appearance:none;appearance:none;background:#30363d;border-radius:2px;outline:none;cursor:pointer}
+.orbit-brightness-row input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:#58a6ff;border:2px solid #1a3654;cursor:pointer;transition:background .15s}
+.orbit-brightness-row input[type="range"]:hover::-webkit-slider-thumb{background:#79b8ff}
+.orbit-brightness-value{min-width:44px;text-align:right;font-size:11px;color:#e6edf3;font-variant-numeric:tabular-nums}
 .sat-orbit-row{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(150px,.75fr);gap:8px;align-items:start}
 .sat-select-cell,.orbit-toggle-cell{background:#161b22;border:1px solid #30363d;border-radius:8px;padding:8px}
 .orbit-toggle-cell .ba{padding:6px 8px;font-size:11px;text-align:center}
@@ -180,8 +179,7 @@ html,body{width:100%;height:100%;background:#0d1117;overflow:hidden}
   cursor:pointer;display:flex;align-items:center;justify-content:center;
   color:#8b949e;z-index:101;transition:left .35s cubic-bezier(.16,1,.3,1);font-size:10px}
 #tb.collapsed{left:0}
-#hud{position:absolute;bottom:24px;right:24px;background:rgba(13,17,23,.88);backdrop-filter:blur(8px);border:1px solid #30363d;border-radius:10px;padding:10px 14px;font-size:11px;color:#8b949e;min-width:220px;z-index:100;display:none}
-#hud.on{display:block}
+
 .hr2{display:flex;justify-content:space-between;gap:16px;margin-bottom:3px}
 .hk{color:#484f58}.hv{color:#e6edf3;font-weight:600;font-variant-numeric:tabular-nums}
 #timebar{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);background:rgba(13,17,23,.88);backdrop-filter:blur(8px);border:1px solid #30363d;border-radius:10px;padding:8px 16px 10px;font-size:11px;color:#8b949e;z-index:100;display:none;white-space:nowrap;min-width:480px}
@@ -215,7 +213,6 @@ html,body{width:100%;height:100%;background:#0d1117;overflow:hidden}
     <span class="fybb">FYBB#1</span> ·
     Satellite Orbit Visualization
   </div>
-  <div class="b-badge">DEMO</div>
 </div>
 
 <div id="cesiumContainer"></div>
@@ -258,7 +255,7 @@ html,body{width:100%;height:100%;background:#0d1117;overflow:hidden}
           <button class="bs" data-spd="500">500x</button>
           <button class="bs" data-spd="1000">1000x</button>
         </div>
-        <div class="combo-title" style="margin-top:8px">时间窗口 | 轨迹密度</div>
+        <div class="combo-title" style="margin-top:8px">时间窗口</div>
         <div class="sr">
           <button class="bs active" data-orbit-days="1">1天</button>
           <button class="bs" data-orbit-days="3">3天</button>
@@ -272,6 +269,13 @@ html,body{width:100%;height:100%;background:#0d1117;overflow:hidden}
           <div class="ti"><label for="togS">卫星图标</label><label class="sw"><input type="checkbox" id="togS" checked><span class="tr"></span></label></div>
           <div class="ti"><label for="togL">标签</label><label class="sw"><input type="checkbox" id="togL" checked><span class="tr"></span></label></div>
         </div>
+      </div>
+    </div>
+    <div class="combo-box orbit-brightness-box">
+      <div class="combo-title">轨道线亮度</div>
+      <div class="orbit-brightness-row">
+        <input type="range" id="orbitBrightness" min="0" max="100" value="25" step="1">
+        <span id="orbitBrightnessValue" class="orbit-brightness-value">25%</span>
       </div>
     </div>
   </div>
@@ -291,16 +295,18 @@ html,body{width:100%;height:100%;background:#0d1117;overflow:hidden}
     </div>
   </div>
 
+
   <!-- 操作 -->
   <div class="ps">
     <div class="sl">操作</div>
     <div class="al al-actions">
       <button class="ba primary" id="btnHome">回到全局视角</button>
       <button class="ba" id="btnFollow">跟踪卫星</button>
-      <button class="ba" id="btnFree">退出跟踪</button>
       <button class="ba scene" id="btnGotoScene">定位至影像区域</button>
+      <button class="ba" id="btnRefresh">初始化</button>
     </div>
   </div>
+
 
 </div>
 
@@ -354,14 +360,6 @@ html,body{width:100%;height:100%;background:#0d1117;overflow:hidden}
     <span id="td">-</span>
     <button id="tbPlayPause" class="tb-btn" title="播放/暂停">▶</button>
   </div>
-</div>
-
-<!-- HUD -->
-<div id="hud">
-  <div class="hr2"><span class="hk">X km</span><span class="hv" id="hX-">-</span></div>
-  <div class="hr2"><span class="hk">Y km</span><span class="hv" id="hY-">-</span></div>
-  <div class="hr2"><span class="hk">Z km</span><span class="hv" id="hZ-">-</span></div>
-  <div class="hr2"><span class="hk">高度 km</span><span class="hv" id="hAlt-">-</span></div>
 </div>
 
 <!-- 错误框 -->
@@ -578,6 +576,26 @@ function rebuildOrbitLine(entry, days, centerTimeIso) {
 
   if (positions.length < 2) return;
   entry.orbitLine.polyline.positions = new Cesium.ConstantProperty(positions);
+  applyOrbitLineBrightness(entry, getOrbitLineBrightness());
+}
+function getOrbitLineBrightness() {
+  const slider = G('orbitBrightness');
+  const raw = slider ? Number(slider.value) : 70;
+  return Math.max(0, Math.min(100, Number.isFinite(raw) ? raw : 70));
+}
+function applyOrbitLineBrightness(entry, brightness) {
+  const line = entry?.orbitLine?.polyline;
+  if (!line?.material) return;
+  const color = entry.orbitBaseColor || Cesium.Color.WHITE;
+  const level = Math.max(0, Math.min(100, Number(brightness) || 0)) / 100;
+  const alpha = 0.18 + (0.82 * level);
+  const glowPower = 0.02 + (0.10 * level);
+  try {
+    if (line.material.color) line.material.color = color.withAlpha(alpha);
+    if (line.material.glowPower != null) line.material.glowPower = glowPower;
+  } catch (e) {
+    console.warn('apply orbit brightness failed', e);
+  }
 }
 function computeStats(states) {
   const R = 6371;
@@ -595,7 +613,7 @@ function computeStats(states) {
     vmax: vmax.toFixed(3),
   };
 }
-function populatePanel(meta, stats) {
+  function populatePanel(meta, stats) {
   const nameEl = G('mName-');
   if (nameEl) {
     nameEl.textContent = meta.displayName || meta.objectName || '-';
@@ -816,7 +834,7 @@ async function createViewer() {
     animation: false, timeline: false,
     baseLayerPicker: false, homeButton: true,
     sceneModePicker: false, navigationHelpButton: true,
-    geocoder: true, fullscreenButton: true,
+    geocoder: true, fullscreenButton: false,
     infoBox: true, selectionIndicator: true,
   })
 
@@ -835,6 +853,26 @@ async function createViewer() {
     Cesium.CameraEventType.WHEEL, Cesium.CameraEventType.PINCH,
   ];
   viewer.scene.screenSpaceCameraController.zoomFactor = 5;
+
+  // 开启地球自转（光照让自转的昼夜分界线肉眼可见）
+  viewer.scene.globe.enableLighting = true;
+  // 夜面最低亮度（0=全黑，0.5=半亮，默认约0.1）
+  viewer.scene.globe.nightFadeOutDistance = 1e6;
+  viewer.scene.globe.nightFadeInDistance  = 5e5;
+
+  // Cesium 1.x 直接设 lightingFadeOutDistance / lightingFadeInDistance：
+  // viewer.scene.globe.lightingFadeOutDistance = 1e9;
+  // viewer.scene.globe.lightingFadeInDistance  = 1e9;
+
+  // 夜面环境光（让暗面不全黑）
+  viewer.scene.globe.atmosphereLightIntensity = 5.0; // 默认10，可调到15-20
+  viewer.scene.globe.atmosphereMieScaleHeight = 10000;
+  viewer.scene.globe.atmosphereRayleighScaleHeight = 10000;
+  // 调整夜面底部亮度
+  viewer.scene.globe.dynamicAtmosphereLighting = true;
+  viewer.scene.globe.dynamicAtmosphereLightingFromSun = true;
+  viewer.clock.shouldAnimate = true;
+  viewer.clockViewModel && (viewer.clockViewModel.shouldAnimate = true);
 
   return viewer;
 }
@@ -973,7 +1011,9 @@ function addOneSat(viewer, meta, states, registry) {
     stats: computeStats(states),
     allStates: states,
     sampledProp, orbitLine, satEntity, satLabel, startJD, stopJD, nameFillColor, idFillColor,
+    orbitBaseColor: orbitColor,
   };
+  applyOrbitLineBrightness(entry, getOrbitLineBrightness());
   registry.push(entry);
   return entry;
 }
@@ -1011,18 +1051,38 @@ function addOcclusionFade(viewer, registry) {
 // ══════════════════════════════════════════════════
 // 多星 UI 绑定
 // ══════════════════════════════════════════════════
-function bindMultiTargetUI(viewer, registry, sceneRect, timebarApi) {
-  G('hud').classList.add('on');
+function bindMultiTargetUI(viewer, registry, sceneRect, timebarApi, autoRotation) {
+ 
   G('timebar').classList.add('on');
 
   const psSel = G('psSatSelect'), satSelect = G('satSelect');
   const orbitToggleBtn = G('btnToggleOtherOrbit');
   const densityBtns = document.querySelectorAll('.bs[data-orbit-days]');
+  const orbitBrightnessSlider = G('orbitBrightness');
+  const orbitBrightnessValue = G('orbitBrightnessValue');
   let current = registry[0];
   let showOtherOrbit = true;
   let orbitLinesEnabled = true;
   let orbitDensityDays = 3;
+  let sceneRotationPaused = false;
   const getWindowMode = () => current?.sourceType === 'tle' ? 'forward' : 'center';
+
+  const resumeSceneRotation = () => {
+    if (!sceneRotationPaused) return;
+    sceneRotationPaused = false;
+    autoRotation.start();
+  };
+
+  const pauseSceneRotation = () => {
+    sceneRotationPaused = true;
+    autoRotation.stop();
+  };
+
+  const syncOrbitBrightness = () => {
+    const brightness = getOrbitLineBrightness();
+    if (orbitBrightnessValue) orbitBrightnessValue.textContent = `${brightness}%`;
+    registry.forEach(item => applyOrbitLineBrightness(item, brightness));
+  };
 
   const syncOrbitVisibility = () => {
     registry.forEach(item => {
@@ -1035,6 +1095,7 @@ function bindMultiTargetUI(viewer, registry, sceneRect, timebarApi) {
   };
 
   const applyOrbitDensity = days => {
+    resumeSceneRotation();
     orbitDensityDays = days;
     const centerTimeIso = Cesium.JulianDate.toIso8601(viewer.clock.currentTime);
     registry.forEach(item => rebuildOrbitLine(item, orbitDensityDays, centerTimeIso));
@@ -1050,7 +1111,14 @@ function bindMultiTargetUI(viewer, registry, sceneRect, timebarApi) {
     applyOrbitDensity(+btn.dataset.orbitDays || 1);
   }));
 
+  orbitBrightnessSlider?.addEventListener('input', () => {
+    resumeSceneRotation();
+    syncOrbitBrightness();
+  });
+  syncOrbitBrightness();
+
   orbitToggleBtn?.addEventListener('click', () => {
+    resumeSceneRotation();
     showOtherOrbit = !showOtherOrbit;
     syncOrbitVisibility();
   });
@@ -1058,7 +1126,7 @@ function bindMultiTargetUI(viewer, registry, sceneRect, timebarApi) {
   if (registry.length > 1) {
     psSel.style.display = '';
     satSelect.innerHTML = registry.map((item,i)=>
-      `<option value="${item.key}">${i+1}. ${item.meta.displayName} (${item.meta.displayId})</option>`
+      `<option value="${item.key}"> ${item.meta.displayName} (${item.meta.displayId})</option>`
     ).join('');
   }
   if (current) populatePanel(current.meta, current.stats);
@@ -1067,6 +1135,7 @@ function bindMultiTargetUI(viewer, registry, sceneRect, timebarApi) {
   syncOrbitVisibility();
 
   satSelect?.addEventListener('change', e => {
+    resumeSceneRotation();
     const found = registry.find(x=>x.key===e.target.value);
     if (found) {
       current = found;
@@ -1081,54 +1150,70 @@ function bindMultiTargetUI(viewer, registry, sceneRect, timebarApi) {
 
   const speedBtns = document.querySelectorAll('.bs[data-spd]');
   speedBtns.forEach(btn => btn.addEventListener('click', ()=>{
+    resumeSceneRotation();
     speedBtns.forEach(b=>b.classList.remove('active'));
     btn.classList.add('active');
     viewer.clock.multiplier = +btn.dataset.spd;
   }));
 
   G('togO').onchange = e => registry.forEach(item=>{
+    resumeSceneRotation();
     orbitLinesEnabled = e.target.checked;
     if (item.orbitLine) item.orbitLine.show=orbitLinesEnabled && !!current && (showOtherOrbit || item.key===current.key);
     if (item.satEntity?.path) item.satEntity.path.show=e.target.checked;
   });
-  G('togS').onchange = e => registry.forEach(item=>{ if(item.satEntity?.billboard) item.satEntity.billboard.show=e.target.checked; });
-  G('togL').onchange = e => registry.forEach(item=>{
-    if(item.satEntity?.label) item.satEntity.label.show=e.target.checked;
-    if(item.satLabel?.label)  item.satLabel.label.show=e.target.checked;
-  });
+  G('togS').onchange = e => {
+    resumeSceneRotation();
+    registry.forEach(item=>{ if(item.satEntity?.billboard) item.satEntity.billboard.show=e.target.checked; });
+  };
+  G('togL').onchange = e => {
+    resumeSceneRotation();
+    registry.forEach(item=>{
+      if(item.satEntity?.label) item.satEntity.label.show=e.target.checked;
+      if(item.satLabel?.label)  item.satLabel.label.show=e.target.checked;
+    });
+  };
 
   let isTracking = false;
+  const resetTrackState = () => {
+    isTracking = false;
+    viewer.trackedEntity = undefined;
+    G('btnFollow').classList.remove('active');
+    G('btnFollow').textContent = '跟踪卫星';
+  };
+
   G('btnFollow').onclick = () => {
+    resumeSceneRotation();
     if (!current) return;
     isTracking = !isTracking;
     viewer.trackedEntity = isTracking ? current.satEntity : undefined;
     G('btnFollow').classList.toggle('active', isTracking);
     G('btnFollow').textContent = isTracking ? '取消跟踪' : '跟踪卫星';
-  };
-  G('btnFree').onclick = () => {
-    isTracking=false; viewer.trackedEntity=undefined;
-    G('btnFollow').classList.remove('active');
-    G('btnFollow').textContent='跟踪卫星';
+    if (isTracking) autoRotation.pauseForTracking();
+    else autoRotation.resumeAfterTracking();
   };
   G('btnHome').onclick = () => {
-    isTracking=false; viewer.trackedEntity=undefined;
-    G('btnFollow').classList.remove('active');
-    G('btnFollow').textContent='跟踪卫星';
-    viewer.flyTo(viewer.entities,{duration:2});
+    resumeSceneRotation();
+    resetTrackState();
+    viewer.camera.cancelFlight();
+    autoRotation.resumeAfterTracking();
+    viewer.camera.flyHome(2.0);
   };
   // 定位至影像区域
   G('btnGotoScene').onclick = () => {
     if (!sceneRect) return;
-    viewer.trackedEntity = undefined;
-    isTracking = false;
-    G('btnFollow').classList.remove('active');
-    G('btnFollow').textContent = '跟踪卫星';
+    resetTrackState();
+    viewer.camera.cancelFlight();
+    pauseSceneRotation();
     viewer.camera.flyTo({
-      destination: Cesium.Rectangle.fromDegrees(113.72, 22.05, 114.60, 22.67),
+      destination: sceneRect,
       duration: 2.0,
     });
   };
-
+  G('btnRefresh').onclick = () => {
+    resumeSceneRotation();
+    window.location.reload();
+  };
   const tb=G('tb'), panel=G('panel');
   tb.addEventListener('click',()=>{
     const c=panel.classList.toggle('collapsed');
@@ -1136,18 +1221,6 @@ function bindMultiTargetUI(viewer, registry, sceneRect, timebarApi) {
     tb.textContent=c?'›':'‹';
   });
 
-  // HUD Tick
-  viewer.clock.onTick.addEventListener(clk=>{
-    if (!current) return;
-    const pos=current.sampledProp.getValue(clk.currentTime);
-    if (!pos) return;
-    T('hX-', (pos.x/1000).toFixed(1));
-    T('hY-', (pos.y/1000).toFixed(1));
-    T('hZ-', (pos.z/1000).toFixed(1));
-    const r=Math.sqrt(pos.x**2+pos.y**2+pos.z**2);
-    T('hAlt-', (r/1000-6371).toFixed(1));
-    try { T('td', Cesium.JulianDate.toIso8601(clk.currentTime).replace('T',' ').substring(0,19)+' UTC'); } catch(e){}
-  });
 }
 
 // ══════════════════════════════════════════════════
@@ -1200,7 +1273,31 @@ function initBasemapSwitcher(viewer, sceneLayer) {
 // ══════════════════════════════════════════════════
 function initSatStatus(viewer, registry) {
   const area = G('satStatusArea');
-  if (!area || !registry.length) return;
+  if (!area) return;
+
+  // 顶部全局 UTC 时间行（测控中心风格）
+  const utcRow = document.createElement('div');
+  utcRow.className = 'sat-card';
+  utcRow.innerHTML = `
+    <div class="sat-card-hd">
+      <span class="dot" style="color:#e3b341; background:#e3b341"></span>
+      <span style="color:#e3b341">UTC 时间</span>
+      <span style="color:#484f58; font-weight:400; font-size:10px">Mission Clock</span>
+    </div>
+    <div class="mr"><span class="mk">时刻</span><span class="mv cyan" id="rs-utc">-</span></div>
+  `;
+  area.appendChild(utcRow);
+
+  if (!registry.length) {
+    const wait = document.createElement('div');
+    wait.className = 'sat-card';
+    wait.innerHTML = `<div class="mr"><span class="mk">状态</span><span class="mv">等待轨道数据…</span></div>`;
+    area.appendChild(wait);
+    viewer.clock.onTick.addEventListener(clk => {
+      try { T('rs-utc', Cesium.JulianDate.toIso8601(clk.currentTime).replace('T',' ').substring(0,19)+' UTC'); } catch(e){}
+    });
+    return;
+  }
 
   // 为每颗卫星生成一个卡片 DOM（只建一次）
   const cards = registry.map(item => {
@@ -1226,8 +1323,10 @@ function initSatStatus(viewer, registry) {
     return { item, key: item.key };
   });
 
-  // 每帧更新（复用已有 onTick，追加监听不影响原有 HUD）
+  // 每帧更新（复用已有 onTick）
   viewer.clock.onTick.addEventListener(clk => {
+    // 全局 UTC 时间（测控中心风格 "YYYY-MM-DD HH:MM:SS UTC"）
+    try { T('rs-utc', Cesium.JulianDate.toIso8601(clk.currentTime).replace('T',' ').substring(0,19)+' UTC'); } catch(e){}
     for (const { item, key } of cards) {
       const pos = item.sampledProp.getValue(clk.currentTime);
       if (!pos) continue;
@@ -1237,24 +1336,39 @@ function initSatStatus(viewer, registry) {
       const r = Math.sqrt(x*x + y*y + z*z);
       const alt = (r - 6371).toFixed(1);
 
-      // 速度（对 sampledProp 两点差分估算）
-      const dt = 1; // 1秒
-      const jdNext = Cesium.JulianDate.addSeconds(clk.currentTime, dt, new Cesium.JulianDate());
-      const posNext = item.sampledProp.getValue(jdNext);
+      // 速度（对 sampledProp 两点差分估算；落到窗口边界时回退到向后差分）
+      const dt = 1; // 秒
       let velStr = '-';
-      if (posNext) {
-        const dx = (posNext.x - pos.x)/1000/dt;
-        const dy = (posNext.y - pos.y)/1000/dt;
-        const dz = (posNext.z - pos.z)/1000/dt;
+      const jdNext = Cesium.JulianDate.addSeconds(clk.currentTime, dt, new Cesium.JulianDate());
+      let posA = pos, posB = item.sampledProp.getValue(jdNext);
+      if (!posB) {
+        const jdPrev = Cesium.JulianDate.addSeconds(clk.currentTime, -dt, new Cesium.JulianDate());
+        const posPrev = item.sampledProp.getValue(jdPrev);
+        if (posPrev) { posA = posPrev; posB = pos; }
+      }
+      if (posA && posB) {
+        const dx = (posB.x - posA.x)/1000/dt;
+        const dy = (posB.y - posA.y)/1000/dt;
+        const dz = (posB.z - posA.z)/1000/dt;
         velStr = Math.sqrt(dx*dx+dy*dy+dz*dz).toFixed(3);
       }
 
-      // 经纬度（转 Cartographic）
-      let lonStr = '-', latStr = '-';
+      // 经纬度计算
+      let lonStr = '—', latStr = '—';
       try {
         const carto = Cesium.Cartographic.fromCartesian(pos);
-        lonStr = Cesium.Math.toDegrees(carto.longitude).toFixed(3) + '°';
-        latStr = Cesium.Math.toDegrees(carto.latitude).toFixed(3) + '°';
+        const lonDeg = Cesium.Math.toDegrees(carto.longitude);
+        const latDeg = Cesium.Math.toDegrees(carto.latitude);
+
+        // 纬度：N/S
+        const latAbs = Math.abs(latDeg).toFixed(3);
+        const latDir = latDeg >= 0 ? 'N' : 'S';
+        // 经度：E/W
+        const lonAbs = Math.abs(lonDeg).toFixed(3);
+        const lonDir = lonDeg >= 0 ? 'E' : 'W';
+
+        latStr = `${latAbs}°${latDir}`;
+        lonStr = `${lonAbs}°${lonDir}`;
       } catch(e) {}
 
       T(`rs-lon-${key}`, lonStr);
@@ -1282,11 +1396,17 @@ function initSatStatus(viewer, registry) {
 function initTimebar(viewer, gStart, gStop) {
   const slider=G('tbSlider'), progress=G('tbProgress');
   const btnPP=G('tbPlayPause'), startEl=G('tbStart'), endEl=G('tbEnd');
+  const tdEl = G('td');
   if (!slider) return;
   let rangeStart = Cesium.JulianDate.clone(gStart);
   let rangeStop = Cesium.JulianDate.clone(gStop);
   let totalSec = Cesium.JulianDate.secondsDifference(rangeStop, rangeStart);
   const fmt=s=>s?String(Cesium.JulianDate.toIso8601(s)).replace('T',' ').substring(0,16):'-';
+  const syncPlayPause = () => {
+    const playing = !!viewer.clock.shouldAnimate;
+    btnPP.textContent = playing ? '⏸' : '▶';
+    if (viewer.clockViewModel) viewer.clockViewModel.shouldAnimate = playing;
+  };
   const syncLabels = () => {
     startEl.textContent = fmt(rangeStart);
     endEl.textContent = fmt(rangeStop);
@@ -1321,18 +1441,22 @@ function initTimebar(viewer, gStart, gStop) {
     viewer.clock.currentTime=Cesium.JulianDate.addSeconds(rangeStart,ratio*totalSec,new Cesium.JulianDate());
     progress.style.width=ratio*100+'%';
   });
-  slider.addEventListener('mouseup',()=>{ if(!wasPaused) viewer.clock.shouldAnimate=true; });
-  slider.addEventListener('touchend', ()=>{ if(!wasPaused) viewer.clock.shouldAnimate=true; });
+  slider.addEventListener('mouseup',()=>{ if(!wasPaused) { viewer.clock.shouldAnimate=true; syncPlayPause(); } });
+  slider.addEventListener('touchend', ()=>{ if(!wasPaused) { viewer.clock.shouldAnimate=true; syncPlayPause(); } });
   btnPP?.addEventListener('click',()=>{
     viewer.clock.shouldAnimate=!viewer.clock.shouldAnimate;
-    btnPP.textContent=viewer.clock.shouldAnimate?'⏸':'▶';
+    syncPlayPause();
   });
   viewer.clock.onTick.addEventListener(clk=>{
     const elapsed=Cesium.JulianDate.secondsDifference(clk.currentTime,rangeStart);
     const ratio=totalSec>0 ? Math.min(Math.max(elapsed/totalSec,0),1) : 0;
     slider.value=String(Math.round(ratio*10000));
     progress.style.width=ratio*100+'%';
+    if (tdEl) {
+      try { tdEl.textContent = Cesium.JulianDate.toIso8601(clk.currentTime).replace('T',' ').substring(0,19) + ' UTC'; } catch(e) {}
+    }
   });
+  syncPlayPause();
 
   return {
     setWindow(anchorTime, windowDays, options = {}, globalStart = gStart, globalStop = gStop) {
@@ -1446,7 +1570,7 @@ async function init() {
   const controller = viewer.scene.screenSpaceCameraController;
   controller.minimumZoomDistance = 100000;
   controller.maximumZoomDistance = 1.5e8;
-  controller.inertiaZoom = 0.4;
+  controller.inertiaZoom = 0.3;
   controller.zoomFactor  = 3.0;
   initPanelResize(G('panel'));
 
@@ -1507,6 +1631,51 @@ async function init() {
 
   if (!registry.length) { showErr('无有效轨道数据'); return; }
 
+  // 在 init() 末尾加，放在 earthRotation 相关代码之后
+  function initAutoRotation(viewer) {
+    let isRotating = true;
+    let pausedForTracking = false;
+    let lastFrameTime;
+    const ROTATE_SPEED = 0.05; // 度/秒，可调
+
+    const onPostRender = (_, time) => {
+      if (!isRotating || viewer.trackedEntity) return;
+      if (!lastFrameTime) {
+        lastFrameTime = Cesium.JulianDate.clone(time);
+        return;
+      }
+      const dt = Cesium.JulianDate.secondsDifference(time, lastFrameTime);
+      lastFrameTime = Cesium.JulianDate.clone(time);
+      if (!Number.isFinite(dt) || dt <= 0) return;
+      viewer.camera.rotateRight(Cesium.Math.toRadians(ROTATE_SPEED) * dt);
+    };
+
+    viewer.scene.postRender.addEventListener(onPostRender);
+
+    const resetClock = () => { lastFrameTime = undefined; };
+
+    return {
+      start: () => { isRotating = true; pausedForTracking = false; resetClock(); },
+      stop: () => { isRotating = false; pausedForTracking = false; resetClock(); },
+      pauseForTracking: () => {
+        if (!isRotating) return;
+        pausedForTracking = true;
+        isRotating = false;
+        resetClock();
+      },
+      resumeAfterTracking: () => {
+        if (!pausedForTracking) return;
+        pausedForTracking = false;
+        isRotating = true;
+        resetClock();
+      },
+    };
+  }
+  const autoRotation = initAutoRotation(viewer);
+  autoRotation.start();
+
+
+
   // ── 时间轴范围：两星共存段，前后3天，默认为当前时刻 ──
   let gStart = registry.reduce((a,b)=>
     Cesium.JulianDate.greaterThan(a, b.startJD) ? a : b.startJD,   // 取最晚的 startJD
@@ -1539,7 +1708,7 @@ async function init() {
   // 初始化底图切换器并传入场景影像 layer，以便切换底图时保留并置顶该图层
   try { initBasemapSwitcher(viewer, sceneLayer); } catch(e) { console.warn('initBasemapSwitcher error', e); }
   const timebarApi = initTimebar(viewer, gStart, gStop);
-  bindMultiTargetUI(viewer, registry, sceneRect, timebarApi);
+  bindMultiTargetUI(viewer, registry, sceneRect, timebarApi, autoRotation);
 
   viewer.flyTo(viewer.entities, {duration:2});
 }
