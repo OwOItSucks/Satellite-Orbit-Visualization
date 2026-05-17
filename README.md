@@ -1,5 +1,7 @@
 # HKUST × Musico & FYBB#1 — Satellite Orbit Visualization
 
+
+https://owoitsucks.github.io/Satellite-Orbit-Visualization/ 
 A single-page 3D satellite orbit demo built with CesiumJS.  
 Visualizes two satellites (Musico / CSS and FYBB#1) with real orbital data,
 an imagery overlay for the FYBB#1 scene area in Hong Kong, and an interactive
@@ -9,11 +11,11 @@ control panel — no backend required.
 
 ## Live Demo
 
-Open `demo2.html` via a local HTTP server (required for `fetch`):
+Open `index.html` via a local HTTP server (required for `fetch`):
 
 ```bash
 python -m http.server 8080
-# → http://localhost:8080/demo2.html
+# → http://localhost:8080/index.html
 ```
 
 > ⚠️ Do **not** open via `file://` — `fetch()` will be blocked by the browser.
