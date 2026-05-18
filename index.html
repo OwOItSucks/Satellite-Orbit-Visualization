@@ -184,6 +184,8 @@ html,body{width:100%;height:100%;background:#0d1117;overflow:hidden}
 .hk{color:#484f58}.hv{color:#e6edf3;font-weight:600;font-variant-numeric:tabular-nums}
 #timebar{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);background:rgba(13,17,23,.88);backdrop-filter:blur(8px);border:1px solid #30363d;border-radius:10px;padding:8px 16px 10px;font-size:11px;color:#8b949e;z-index:100;display:none;white-space:nowrap;min-width:480px}
 #timebar.on{display:block}
+.tb-current{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px;font-size:11px;color:#c9d1d9}
+.tb-current .tb-edge{font-size:11px;color:#8b949e;min-width:200px}
 .tb-row{display:flex;align-items:center;gap:8px;margin-bottom:4px}
 .tb-edge{font-size:10px;color:#484f58;min-width:100px}
 .tb-edge:last-child{text-align:right}
@@ -303,7 +305,7 @@ html,body{width:100%;height:100%;background:#0d1117;overflow:hidden}
       <button class="ba primary" id="btnHome">回到全局视角</button>
       <button class="ba" id="btnFollow">跟踪卫星</button>
       <button class="ba scene" id="btnGotoScene">定位至影像区域</button>
-      <button class="ba" id="btnRefresh">初始化</button>
+      <button class="ba" id="btnRefresh">实时定位</button>
     </div>
   </div>
 
@@ -348,6 +350,10 @@ html,body{width:100%;height:100%;background:#0d1117;overflow:hidden}
 
 <!-- 时间轴 -->
 <div id="timebar">
+  <div class="tb-current">
+    <span class="tb-edge">当前时间（GMT+8）</span>
+    <span id="tbNow" class="tb-edge">-</span>
+  </div>
   <div class="tb-row">
     <span id="tbStart" class="tb-edge">-</span>
     <div class="tb-slider-wrap">
@@ -1271,6 +1277,22 @@ function initBasemapSwitcher(viewer, sceneLayer) {
 // ══════════════════════════════════════════════════
 // 右侧面板：实时卫星状态
 // ══════════════════════════════════════════════════
+function formatHKTime(jd) {
+  if (!jd) return '-';
+  const d = Cesium.JulianDate.toDate(jd);
+  const hk = new Date(d.getTime() + 8 * 3600 * 1000);
+  const pad = n => String(n).padStart(2, '0');
+  return `${hk.getUTCFullYear()}-${pad(hk.getUTCMonth() + 1)}-${pad(hk.getUTCDate())} ${pad(hk.getUTCHours())}:${pad(hk.getUTCMinutes())}:${pad(hk.getUTCSeconds())} HKT`;
+}
+
+function formatGMT8Time(jd) {
+  if (!jd) return '-';
+  const d = Cesium.JulianDate.toDate(jd);
+  const hk = new Date(d.getTime() + 8 * 3600 * 1000);
+  const pad = n => String(n).padStart(2, '0');
+  return `${hk.getUTCFullYear()}-${pad(hk.getUTCMonth() + 1)}-${pad(hk.getUTCDate())} ${pad(hk.getUTCHours())}:${pad(hk.getUTCMinutes())}:${pad(hk.getUTCSeconds())} GMT+8`;
+}
+
 function initSatStatus(viewer, registry) {
   const area = G('satStatusArea');
   if (!area) return;
@@ -1281,10 +1303,11 @@ function initSatStatus(viewer, registry) {
   utcRow.innerHTML = `
     <div class="sat-card-hd">
       <span class="dot" style="color:#e3b341; background:#e3b341"></span>
-      <span style="color:#e3b341">UTC 时间</span>
+      <span style="color:#e3b341">当前时间</span>
       <span style="color:#484f58; font-weight:400; font-size:10px">Mission Clock</span>
     </div>
     <div class="mr"><span class="mk">时刻</span><span class="mv cyan" id="rs-utc">-</span></div>
+    <div class="mr"><span class="mk">香港时间</span><span class="mv cyan" id="rs-hk">-</span></div>
   `;
   area.appendChild(utcRow);
 
@@ -1294,7 +1317,10 @@ function initSatStatus(viewer, registry) {
     wait.innerHTML = `<div class="mr"><span class="mk">状态</span><span class="mv">等待轨道数据…</span></div>`;
     area.appendChild(wait);
     viewer.clock.onTick.addEventListener(clk => {
-      try { T('rs-utc', Cesium.JulianDate.toIso8601(clk.currentTime).replace('T',' ').substring(0,19)+' UTC'); } catch(e){}
+      try {
+        T('rs-utc', Cesium.JulianDate.toIso8601(clk.currentTime).replace('T',' ').substring(0,19) + ' UTC');
+        T('rs-hk', formatHKTime(clk.currentTime));
+      } catch(e){}
     });
     return;
   }
@@ -1326,7 +1352,10 @@ function initSatStatus(viewer, registry) {
   // 每帧更新（复用已有 onTick）
   viewer.clock.onTick.addEventListener(clk => {
     // 全局 UTC 时间（测控中心风格 "YYYY-MM-DD HH:MM:SS UTC"）
-    try { T('rs-utc', Cesium.JulianDate.toIso8601(clk.currentTime).replace('T',' ').substring(0,19)+' UTC'); } catch(e){}
+    try {
+      T('rs-utc', Cesium.JulianDate.toIso8601(clk.currentTime).replace('T',' ').substring(0,19)+' UTC');
+      T('rs-hk', formatHKTime(clk.currentTime));
+    } catch(e){}
     for (const { item, key } of cards) {
       const pos = item.sampledProp.getValue(clk.currentTime);
       if (!pos) continue;
@@ -1397,11 +1426,12 @@ function initTimebar(viewer, gStart, gStop) {
   const slider=G('tbSlider'), progress=G('tbProgress');
   const btnPP=G('tbPlayPause'), startEl=G('tbStart'), endEl=G('tbEnd');
   const tdEl = G('td');
+  const nowEl = G('tbNow');
   if (!slider) return;
   let rangeStart = Cesium.JulianDate.clone(gStart);
   let rangeStop = Cesium.JulianDate.clone(gStop);
   let totalSec = Cesium.JulianDate.secondsDifference(rangeStop, rangeStart);
-  const fmt=s=>s?String(Cesium.JulianDate.toIso8601(s)).replace('T',' ').substring(0,16):'-';
+  const fmt = s => s ? formatGMT8Time(s).substring(0,16) : '-';
   const syncPlayPause = () => {
     const playing = !!viewer.clock.shouldAnimate;
     btnPP.textContent = playing ? '⏸' : '▶';
@@ -1452,8 +1482,11 @@ function initTimebar(viewer, gStart, gStop) {
     const ratio=totalSec>0 ? Math.min(Math.max(elapsed/totalSec,0),1) : 0;
     slider.value=String(Math.round(ratio*10000));
     progress.style.width=ratio*100+'%';
+    if (nowEl) {
+      try { nowEl.textContent = formatGMT8Time(clk.currentTime); } catch(e) {}
+    }
     if (tdEl) {
-      try { tdEl.textContent = Cesium.JulianDate.toIso8601(clk.currentTime).replace('T',' ').substring(0,19) + ' UTC'; } catch(e) {}
+      try { tdEl.textContent = formatGMT8Time(clk.currentTime); } catch(e) {}
     }
   });
   syncPlayPause();
