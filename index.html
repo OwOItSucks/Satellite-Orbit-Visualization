@@ -1794,6 +1794,27 @@ async function init() {
     applyLang(lang === 'zh' ? 'en' : 'zh');
   });
 
+// ── 同步状态按钮（文字由 JS 逻辑控制，需要手动对齐当前状态）──
+
+// 跟踪卫星按钮
+   const btnFollow = document.getElementById('btnFollow');
+   if (btnFollow) {
+     const isTracking = btnFollow.classList.contains('active');
+     btnFollow.textContent = isTracking
+       ? (l === 'en' ? btnFollow.dataset.enOn  : btnFollow.dataset.zhOn)
+       : (l === 'en' ? btnFollow.dataset.enOff : btnFollow.dataset.zhOff);
+   }
+   
+// 显示/隐藏另一卫星轨道线按钮
+   const btnOrbit = document.getElementById('btnToggleOtherOrbit');
+   if (btnOrbit) {
+     const orbitShowing = btnOrbit.classList.contains('active');
+     btnOrbit.textContent = orbitShowing
+       ? (l === 'en' ? btnOrbit.dataset.enOn  : btnOrbit.dataset.zhOn)
+       : (l === 'en' ? btnOrbit.dataset.enOff : btnOrbit.dataset.zhOff);
+   }
+   
+
   // 暴露给外部，让 initSatStatus 动态插入的内容也能响应语言切换
   window._i18nApply = applyLang;
   window._i18nLang  = () => lang;
