@@ -1,0 +1,28 @@
+name: Fetch Latest CSS OEM
+
+on:
+  schedule:
+    # 每天 UTC 02:00 和 14:00 各跑一次（北京时间 10:00 和 22:00）
+    - cron: '0 2,14 * * *'
+  workflow_dispatch:  # 允许手动触发
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write   # 允许 push 回仓库
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Fetch OEM from CMSE
+        run: python3 .github/scripts/fetch_oem.py
+
+      - name: Commit and push if changed
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/CSS_OEM.dat
+          git diff --staged --quiet || git commit -m "chore: update CSS OEM $(date -u +%Y-%m-%d)"
+          git push
