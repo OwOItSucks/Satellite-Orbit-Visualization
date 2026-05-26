@@ -4,55 +4,49 @@ on:
   schedule:
     - cron: '0 2,14 * * *'
   workflow_dispatch:
+  push:
+    branches: ["main"]
 
-# 允许同时有多个部署，取消排队
+# 确保并发部署不会冲突
 concurrency:
   group: "pages"
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
-  fetch-and-commit:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        
-      - name: Fetch OEM from CMSE
-        run: python3 .github/scripts/fetch_oem.py
-
-      - name: Commit and push if changed
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/CSS_OEM.dat
-          git diff --staged --quiet || git commit -m "chore: update CSS OEM $(date -u +%Y-%m-%d)"
-          git push
-
-  # 这个 job 负责强制部署 Pages
-  deploy-pages:
-    needs: fetch-and-commit
-    runs-on: ubuntu-latest
-    permissions:
-      pages: write
-      id-token: write
+  fetch-and-deploy:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Checkout (Get latest commit)
-        uses: actions/checkout@v4
-        with:
-          ref: main # 确保拉到的是刚刚 fetch-and-commit 提交后的最新代码
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pages: write      # 需要这个权限直接写 Pages
+      id-token: write
 
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Fetch OEM from CMSE
+        run: python3 .github/scripts/fetch_oem.py
+
+      # 如果希望下载的数据保留在源码仓库，保留这段 push 代码
+      - name: Commit and push if changed
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/CSS_OEM.dat
+          git diff --staged --quiet || git commit -m "chore: update CSS OEM $(date -u +%Y-%m-%d)"
+          git push || echo "No changes to push"
+
+      # 下面三步是官方推荐的直接部署 Pages 的做法
       - name: Setup Pages
-        uses: actions/configure-pages@v4
+        uses: actions/configure-pages@v5
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: '.' # index.html 在根目录就写 '.'
+          path: '.' # 上传整个根目录（因为你的 index.html 和 data 都在根目录）
 
       - name: Deploy to GitHub Pages
         id: deployment
