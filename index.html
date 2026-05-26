@@ -25,6 +25,14 @@ html,body{width:100%;height:100%;background:#0d1117;overflow:hidden}
   z-index:200;
   pointer-events:none;
 }
+#btnLang{
+  position:absolute;right:14px;top:50%;transform:translateY(-50%);
+  background:#1a3654;border:1px solid #58a6ff;border-radius:4px;
+  color:#58a6ff;font-size:11px;font-weight:700;letter-spacing:.05em;
+  padding:3px 10px;cursor:pointer;pointer-events:auto;
+  transition:background .15s,color .15s;
+}
+#btnLang:hover{background:#1f4172;color:#79b8ff;}
 
 #banner .b-title {
   font-size:15px;font-weight:700;
@@ -213,8 +221,9 @@ html,body{width:100%;height:100%;background:#0d1117;overflow:hidden}
     <span class="hkust">HKUST</span> ·
     <span class="musico">Musico</span>&nbsp;&nbsp;&nbsp;&amp;&nbsp;&nbsp;&nbsp;
     <span class="fybb">FYBB#1</span> ·
-    Satellite Orbit Visualization
+    <span data-zh="卫星轨道可视化" data-en="Satellite Orbit Visualization">Satellite Orbit Visualization</span>
   </div>
+  <button id="btnLang" title="Switch Language">EN</button>
 </div>
 
 <div id="cesiumContainer"></div>
@@ -224,57 +233,57 @@ html,body{width:100%;height:100%;background:#0d1117;overflow:hidden}
   <div id="panelResizer" class="panel-resizer" title="拖动调整宽度"></div>
   <!-- 卫星信息 -->
   <div class="ps">
-    <div class="sl">卫星信息</div>
-    <div class="mr"><span class="mk">名称</span><span class="mv cyan" id="mName-"></span></div>
-    <div class="mr"><span class="mk">ID</span><span class="mv" id="mId-"></span></div>
-    <div class="mr"><span class="mk">参考系</span><span class="mv badge" id="mFrame-"></span></div>
-    <div class="mr"><span class="mk">时间系统</span><span class="mv badge" id="mTsys-"></span></div>
-    <div class="mr"><span class="mk">中心体</span><span class="mv" id="mCenter-"></span></div>
+    <div class="sl" data-zh="卫星信息" data-en="Satellite Info">卫星信息</div>
+    <div class="mr"><span class="mk" data-zh="名称" data-en="Name">名称</span><span class="mv cyan" id="mName-"></span></div>
+    <div class="mr"><span class="mk" data-zh="ID" data-en="ID">ID</span><span class="mv" id="mId-"></span></div>
+    <div class="mr"><span class="mk" data-zh="参考系" data-en="Ref Frame">参考系</span><span class="mv badge" id="mFrame-"></span></div>
+    <div class="mr"><span class="mk" data-zh="时间系统" data-en="Time Sys">时间系统</span><span class="mv badge" id="mTsys-"></span></div>
+    <div class="mr"><span class="mk" data-zh="中心体" data-en="Center">中心体</span><span class="mv" id="mCenter-"></span></div>
   </div>
 
   <!-- 轨道统计 -->
   <div class="ps">
-    <div class="sl">轨道统计</div>
+    <div class="sl" data-zh="轨道统计" data-en="Orbit Stats">轨道统计</div>
     <div class="kg">
-      <div class="kc"><div class="kl">历元数</div><div class="kv cyan" id="kCount-"></div></div>
-      <div class="kc"><div class="kl">覆盖天数</div><div class="kv gold" id="kDays-"></div></div>
-      <div class="kc"><div class="kl">平均高度 km</div><div class="kv green" id="kAlt-"></div></div>
-      <div class="kc"><div class="kl">Vmax km/s</div><div class="kv" id="kVmax-"></div></div>
+      <div class="kc"><div class="kl" data-zh="历元数" data-en="Epochs">历元数</div><div class="kv cyan" id="kCount-"></div></div>
+      <div class="kc"><div class="kl" data-zh="覆盖天数" data-en="Days">覆盖天数</div><div class="kv gold" id="kDays-"></div></div>
+      <div class="kc"><div class="kl" data-zh="平均高度 km" data-en="Mean Alt km">平均高度 km</div><div class="kv green" id="kAlt-"></div></div>
+      <div class="kc"><div class="kl" data-zh="Vmax km/s" data-en="Vmax km/s">Vmax km/s</div><div class="kv" id="kVmax-"></div></div>
     </div>
-    <div class="mr" style="margin-top:12px"><span class="mk">开始</span><span class="mv" id="mStart-"></span></div>
-    <div class="mr"><span class="mk">结束</span><span class="mv" id="mStop-"></span></div>
+    <div class="mr" style="margin-top:12px"><span class="mk" data-zh="开始" data-en="Start">开始</span><span class="mv" id="mStart-"></span></div>
+    <div class="mr"><span class="mk" data-zh="结束" data-en="End">结束</span><span class="mv" id="mStop-"></span></div>
   </div>
 
   <!-- 播放速度 | 时间窗口 + 图层 -->
   <div class="ps">
-    <div class="sl">播放与显示</div>
+    <div class="sl" data-zh="播放与显示" data-en="Playback">播放与显示</div>
     <div class="combo-grid">
       <div class="combo-box">
-        <div class="combo-title">播放速度</div>
+        <div class="combo-title" data-zh="播放速度" data-en="Speed">播放速度</div>
         <div class="sr speed-grid">
           <button class="bs active" data-spd="10">10x</button>
           <button class="bs" data-spd="100">100x</button>
           <button class="bs" data-spd="500">500x</button>
           <button class="bs" data-spd="1000">1000x</button>
         </div>
-        <div class="combo-title" style="margin-top:8px">时间窗口</div>
+        <div class="combo-title" style="margin-top:8px" data-zh="时间窗口" data-en="Time Window">时间窗口</div>
         <div class="sr">
-          <button class="bs active" data-orbit-days="1">1天</button>
-          <button class="bs" data-orbit-days="3">3天</button>
-          <button class="bs" data-orbit-days="7">7天</button>
+          <button class="bs active" data-orbit-days="1" data-zh="1天" data-en="1d">1天</button>
+          <button class="bs" data-orbit-days="3" data-zh="3天" data-en="3d">3天</button>
+          <button class="bs" data-orbit-days="7" data-zh="7天" data-en="7d">7天</button>
         </div>
       </div>
       <div class="combo-box">
-        <div class="combo-title">图层</div>
+        <div class="combo-title" data-zh="图层" data-en="Layers">图层</div>
         <div class="tl layer-stack">
-          <div class="ti"><label for="togO">轨道线</label><label class="sw"><input type="checkbox" id="togO" checked><span class="tr"></span></label></div>
-          <div class="ti"><label for="togS">卫星图标</label><label class="sw"><input type="checkbox" id="togS" checked><span class="tr"></span></label></div>
-          <div class="ti"><label for="togL">标签</label><label class="sw"><input type="checkbox" id="togL" checked><span class="tr"></span></label></div>
+          <div class="ti"><label for="togO" data-zh="轨道线" data-en="Orbit">轨道线</label><label class="sw"><input type="checkbox" id="togO" checked><span class="tr"></span></label></div>
+          <div class="ti"><label for="togS" data-zh="卫星图标" data-en="Icon">卫星图标</label><label class="sw"><input type="checkbox" id="togS" checked><span class="tr"></span></label></div>
+          <div class="ti"><label for="togL" data-zh="标签" data-en="Label">标签</label><label class="sw"><input type="checkbox" id="togL" checked><span class="tr"></span></label></div>
         </div>
       </div>
     </div>
     <div class="combo-box orbit-brightness-box">
-      <div class="combo-title">轨道线亮度</div>
+      <div class="combo-title" data-zh="轨道线亮度" data-en="Orbit Brightness">轨道线亮度</div>
       <div class="orbit-brightness-row">
         <input type="range" id="orbitBrightness" min="0" max="100" value="25" step="1">
         <span id="orbitBrightnessValue" class="orbit-brightness-value">25%</span>
@@ -284,15 +293,15 @@ html,body{width:100%;height:100%;background:#0d1117;overflow:hidden}
 
   <!-- 卫星选择 + 轨道线 -->
   <div class="ps">
-    <div class="sl">视角切换</div>
+    <div class="sl" data-zh="视角切换" data-en="View">视角切换</div>
     <div class="sat-orbit-row">
       <div class="sat-select-cell" id="psSatSelect" style="display:none">
-        <div class="combo-title">卫星选择</div>
+        <div class="combo-title" data-zh="卫星选择" data-en="Satellite">卫星选择</div>
         <select id="satSelect" class="ba" style="width:100%"></select>
       </div>
       <div class="orbit-toggle-cell">
-        <div class="combo-title">聚焦轨道</div>
-        <button class="ba" id="btnToggleOtherOrbit">显示另一卫星轨道线</button>
+        <div class="combo-title" data-zh="聚焦轨道" data-en="Orbit Focus">聚焦轨道</div>
+        <button class="ba" id="btnToggleOtherOrbit" data-zh-on="隐藏另一卫星轨道线" data-en-on="Hide Other Orbit" data-zh-off="显示另一卫星轨道线" data-en-off="Show Other Orbit">显示另一卫星轨道线</button>
       </div>
     </div>
   </div>
@@ -300,12 +309,12 @@ html,body{width:100%;height:100%;background:#0d1117;overflow:hidden}
 
   <!-- 操作 -->
   <div class="ps">
-    <div class="sl">操作</div>
+    <div class="sl" data-zh="操作" data-en="Actions">操作</div>
     <div class="al al-actions">
-      <button class="ba primary" id="btnHome">回到全局视角</button>
-      <button class="ba" id="btnFollow">跟踪卫星</button>
-      <button class="ba scene" id="btnGotoScene">定位至影像区域</button>
-      <button class="ba" id="btnRefresh">实时定位</button>
+      <button class="ba primary" id="btnHome" data-zh="回到全局视角" data-en="Global View">回到全局视角</button>
+      <button class="ba" id="btnFollow" data-zh-off="跟踪卫星" data-en-off="Track Sat" data-zh-on="取消跟踪" data-en-on="Untrack">跟踪卫星</button>
+      <button class="ba scene" id="btnGotoScene" data-zh="定位至影像区域" data-en="Goto Scene">定位至影像区域</button>
+      <button class="ba" id="btnRefresh" data-zh="实时定位" data-en="Refresh">实时定位</button>
     </div>
   </div>
 
@@ -321,7 +330,7 @@ html,body{width:100%;height:100%;background:#0d1117;overflow:hidden}
   <!-- 底图切换 -->
   <div class="ph">
     <div>
-      <div class="ph-title">底图 / 图层</div>
+      <div class="ph-title" data-zh="底图 / 图层" data-en="Basemap">底图 / 图层</div>
       <div class="ph-sub">Basemap</div>
     </div>
   </div>
@@ -340,8 +349,8 @@ html,body{width:100%;height:100%;background:#0d1117;overflow:hidden}
   <!-- 卫星实时状态（由 JS 动态填充） -->
   <div class="ph" style="border-top: 1px solid #21262d;">
     <div>
-      <div class="ph-title">实时状态</div>
-      <div class="ph-sub">时间轴当前位置</div>
+      <div class="ph-title" data-zh="实时状态" data-en="Live Status">实时状态</div>
+      <div class="ph-sub" data-zh="时间轴当前位置" data-en="Current Position">时间轴当前位置</div>
     </div>
   </div>
   <div id="satStatusArea"></div>
@@ -351,7 +360,7 @@ html,body{width:100%;height:100%;background:#0d1117;overflow:hidden}
 <!-- 时间轴 -->
 <div id="timebar">
   <div class="tb-current">
-    <span class="tb-edge">当前时间（GMT+8）</span>
+    <span class="tb-edge" data-zh="当前时间（GMT+8）" data-en="Current Time (GMT+8)">当前时间（GMT+8）</span>
     <span id="tbNow" class="tb-edge">-</span>
   </div>
   <div class="tb-row">
@@ -371,7 +380,7 @@ html,body{width:100%;height:100%;background:#0d1117;overflow:hidden}
 <!-- 错误框 -->
 <div id="err">
   <div id="eText"></div>
-  <div class="eh" id="eHint">数据加载失败，请检查 /data/ 目录</div>
+  <div class="eh" id="eHint" data-zh="数据加载失败，请检查 /data/ 目录" data-en="Data load failed. Check /data/ directory">数据加载失败，请检查 /data/ 目录</div>
 </div>
 
 <script>
@@ -1096,7 +1105,10 @@ function bindMultiTargetUI(viewer, registry, sceneRect, timebarApi, autoRotation
       item.orbitLine.show = orbitLinesEnabled && !!current && (showOtherOrbit || item.key === current.key);
     });
     if (orbitToggleBtn) {
-      orbitToggleBtn.textContent = showOtherOrbit ? '隐藏另一卫星轨道线' : '显示另一卫星轨道线';
+      const _lang = document.documentElement.lang === 'en' ? 'en' : 'zh';
+      orbitToggleBtn.textContent = showOtherOrbit
+        ? (_lang==='en' ? orbitToggleBtn.dataset.enOn : orbitToggleBtn.dataset.zhOn)
+        : (_lang==='en' ? orbitToggleBtn.dataset.enOff : orbitToggleBtn.dataset.zhOff);
     }
   };
 
@@ -1185,7 +1197,8 @@ function bindMultiTargetUI(viewer, registry, sceneRect, timebarApi, autoRotation
     isTracking = false;
     viewer.trackedEntity = undefined;
     G('btnFollow').classList.remove('active');
-    G('btnFollow').textContent = '跟踪卫星';
+    const _rt = document.documentElement.lang === 'en' ? 'en' : 'zh';
+    G('btnFollow').textContent = _rt==='en' ? G('btnFollow').dataset.enOff : G('btnFollow').dataset.zhOff;
   };
 
   G('btnFollow').onclick = () => {
@@ -1194,7 +1207,10 @@ function bindMultiTargetUI(viewer, registry, sceneRect, timebarApi, autoRotation
     isTracking = !isTracking;
     viewer.trackedEntity = isTracking ? current.satEntity : undefined;
     G('btnFollow').classList.toggle('active', isTracking);
-    G('btnFollow').textContent = isTracking ? '取消跟踪' : '跟踪卫星';
+    const _fl = document.documentElement.lang === 'en' ? 'en' : 'zh';
+    G('btnFollow').textContent = isTracking
+      ? (_fl==='en' ? G('btnFollow').dataset.enOn : G('btnFollow').dataset.zhOn)
+      : (_fl==='en' ? G('btnFollow').dataset.enOff : G('btnFollow').dataset.zhOff);
     if (isTracking) autoRotation.pauseForTracking();
     else autoRotation.resumeAfterTracking();
   };
@@ -1303,7 +1319,7 @@ function initSatStatus(viewer, registry) {
   utcRow.innerHTML = `
     <div class="sat-card-hd">
       <span class="dot" style="color:#e3b341; background:#e3b341"></span>
-      <span style="color:#e3b341">当前时间</span>
+      <span id="rs-label-time" style="color:#e3b341" data-zh="当前时间" data-en="Current Time">当前时间</span>
       <span style="color:#484f58; font-weight:400; font-size:10px">Mission Clock</span>
     </div>
     <div class="mr"><span class="mk">时刻</span><span class="mv cyan" id="rs-utc">-</span></div>
@@ -1314,7 +1330,7 @@ function initSatStatus(viewer, registry) {
   if (!registry.length) {
     const wait = document.createElement('div');
     wait.className = 'sat-card';
-    wait.innerHTML = `<div class="mr"><span class="mk">状态</span><span class="mv">等待轨道数据…</span></div>`;
+    wait.innerHTML = `<div class="mr"><span class="mk" data-zh="状态" data-en="Status">状态</span><span class="mv" data-zh="等待轨道数据…" data-en="Waiting for data…">等待轨道数据…</span></div>`;
     area.appendChild(wait);
     viewer.clock.onTick.addEventListener(clk => {
       try {
@@ -1337,13 +1353,13 @@ function initSatStatus(viewer, registry) {
         <span style="color:${dotColor}">${item.meta.displayName}</span>
         <span style="color:#484f58; font-weight:400; font-size:10px">${item.meta.displayId}</span>
       </div>
-      <div class="mr"><span class="mk">经度</span><span class="mv" id="rs-lon-${item.key}">-</span></div>
-      <div class="mr"><span class="mk">纬度</span><span class="mv" id="rs-lat-${item.key}">-</span></div>
-      <div class="mr"><span class="mk">高度 km</span><span class="mv cyan" id="rs-alt-${item.key}">-</span></div>
-      <div class="mr"><span class="mk">速度 km/s</span><span class="mv" id="rs-vel-${item.key}">-</span></div>
-      <div class="mr"><span class="mk">X km</span><span class="mv" id="rs-x-${item.key}">-</span></div>
-      <div class="mr"><span class="mk">Y km</span><span class="mv" id="rs-y-${item.key}">-</span></div>
-      <div class="mr"><span class="mk">Z km</span><span class="mv" id="rs-z-${item.key}">-</span></div>
+      <div class="mr"><span class="mk" data-zh="经度" data-en="Lon">经度</span><span class="mv" id="rs-lon-${item.key}">-</span></div>
+      <div class="mr"><span class="mk" data-zh="纬度" data-en="Lat">纬度</span><span class="mv" id="rs-lat-${item.key}">-</span></div>
+      <div class="mr"><span class="mk" data-zh="高度 km" data-en="Alt km">高度 km</span><span class="mv cyan" id="rs-alt-${item.key}">-</span></div>
+      <div class="mr"><span class="mk" data-zh="速度 km/s" data-en="Vel km/s">速度 km/s</span><span class="mv" id="rs-vel-${item.key}">-</span></div>
+      <div class="mr"><span class="mk" data-zh="X km" data-en="X km">X km</span><span class="mv" id="rs-x-${item.key}">-</span></div>
+      <div class="mr"><span class="mk" data-zh="Y km" data-en="Y km">Y km</span><span class="mv" id="rs-y-${item.key}">-</span></div>
+      <div class="mr"><span class="mk" data-zh="Z km" data-en="Z km">Z km</span><span class="mv" id="rs-z-${item.key}">-</span></div>
     `;
     area.appendChild(card);
     return { item, key: item.key };
@@ -1558,7 +1574,7 @@ function addImageryOverlay(viewer) {
       disableDepthTestDistance: Number.POSITIVE_INFINITY,
     },
     label:{
-      text:'FYBB#1\n获取区域',
+      text:'FYBB#1\nScene Area',  // i18n handled by JS
       font:'500 16px sans-serif',
       fillColor: Cesium.Color.fromCssColorString('#a3cf62'),
       outlineColor: Cesium.Color.BLACK,
@@ -1745,6 +1761,44 @@ async function init() {
 
   viewer.flyTo(viewer.entities, {duration:2});
 }
+
+// ══════════════════════════════════════════════════
+// i18n — 中英文切换
+// ══════════════════════════════════════════════════
+(function initI18n() {
+  let lang = 'zh';
+
+  function applyLang(l) {
+    lang = l;
+    document.documentElement.lang = l === 'en' ? 'en' : 'zh-CN';
+
+    // 遍历所有带 data-zh / data-en 的叶节点
+    const attr = l === 'en' ? 'data-en' : 'data-zh';
+    document.querySelectorAll('[' + attr + ']').forEach(el => {
+      if (el.children.length === 0) {
+        el.textContent = el.getAttribute(attr);
+      }
+    });
+
+    // 按钮文字（切换按钮自身）
+    const btn = document.getElementById('btnLang');
+    if (btn) btn.textContent = l === 'en' ? '中' : 'EN';
+
+    // 右侧面板卫星卡片（动态插入的，需要二次遍历）
+    document.querySelectorAll('#satStatusArea [' + attr + ']').forEach(el => {
+      if (el.children.length === 0) el.textContent = el.getAttribute(attr);
+    });
+  }
+
+  document.getElementById('btnLang')?.addEventListener('click', () => {
+    applyLang(lang === 'zh' ? 'en' : 'zh');
+  });
+
+  // 暴露给外部，让 initSatStatus 动态插入的内容也能响应语言切换
+  window._i18nApply = applyLang;
+  window._i18nLang  = () => lang;
+})();
+
 
 init();
 </script>
