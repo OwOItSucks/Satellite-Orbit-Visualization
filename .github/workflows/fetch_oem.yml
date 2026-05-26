@@ -46,7 +46,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: '.' # 上传整个根目录（因为你的 index.html 和 data 都在根目录）
+          path: '.' # 上传整个根目录（因为 index.html 和 data 都在根目录）
 
       - name: Deploy to GitHub Pages
         id: deployment
