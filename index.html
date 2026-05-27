@@ -388,15 +388,15 @@ html,body{width:100%;height:100%;background:#0d1117;overflow:hidden}
 // 名称/ID 硬性映射（Demo 展示层覆盖）
 // ══════════════════════════════════════════════════
 const DISPLAY_MAP = {
-  'Musico':    { displayName: '中国空间站', displayId: 'Musico' },
-  'CSS':       { displayName: '中国空间站', displayId: 'Musico' },
-  '1998-067A': { displayName: '中国空间站', displayId: 'Musico' },
-  '48274':     { displayName: '中国空间站', displayId: 'Musico' },
-  'TIANHE':    { displayName: '中国空间站', displayId: 'Musico' },
-  'FYBB#1':    { displayName: '雄彬一号',   displayId: 'FYBB#1' },
-  'FYBB1':     { displayName: '雄彬一号',   displayId: 'FYBB#1' },
+  'Musico':    { displayName: '中国空间站', displayNameEn: 'China Space Station', labelName: 'CSS',  displayId: 'Musico' },
+  'CSS':       { displayName: '中国空间站', displayNameEn: 'China Space Station', labelName: 'CSS',  displayId: 'Musico' },
+  '1998-067A': { displayName: '中国空间站', displayNameEn: 'China Space Station', labelName: 'CSS',  displayId: 'Musico' },
+  '48274':     { displayName: '中国空间站', displayNameEn: 'China Space Station', labelName: 'CSS',  displayId: 'Musico' },
+  'TIANHE':    { displayName: '中国空间站', displayNameEn: 'China Space Station', labelName: 'CSS',  displayId: 'Musico' },
+  'FYBB#1':    { displayName: '雄彬一号',   displayNameEn: 'HKUST',               labelName: 'HKUST', displayId: 'FYBB#1' },
+  'FYBB1':     { displayName: '雄彬一号',   displayNameEn: 'HKUST',               labelName: 'HKUST', displayId: 'FYBB#1' },
 };
-
+   
 const FYBB1_TLE_RAW = `FYBB#1
 1 57696U 23127A   26132.29540856  .00002539  00000-0  15861-3 0  9994
 2 57696  97.5541 226.5860 0013137 101.5708 258.6997 15.10304365150215`;
@@ -631,10 +631,17 @@ function computeStats(states) {
   function populatePanel(meta, stats) {
   const nameEl = G('mName-');
   if (nameEl) {
-    nameEl.textContent = meta.displayName || meta.objectName || '-';
-    nameEl.style.color = (meta.displayId === 'Musico') ? '#66ccff' : '#00b08d';
+    const isEn = window._i18nLang?.() === 'en';
+    const isFYBB = (meta.displayId || '').toUpperCase().includes('FYBB');
+    const zhText = meta.displayName || meta.objectName || '-';
+    const enText = isFYBB
+      ? `HKUST-FYBB#1`
+      : `CSS (China Space Station)`;
+    nameEl.dataset.zhName = zhText;
+    nameEl.dataset.enName = enText;
+    nameEl.textContent = isEn ? enText : zhText;
+    nameEl.style.color = isFYBB ? '#00b08d' : '#66ccff';
   }
-  // ID 白字
   const idEl = G('mId-');
   if (idEl) { idEl.textContent = meta.displayId || meta.objectId || '-'; idEl.style.color = '#ffffff'; }
   T('mFrame-', meta.refFrame || 'TEME');
@@ -905,9 +912,11 @@ function addOneSat(viewer, meta, states, registry) {
     (meta.objectId||'').toUpperCase().includes(k.toUpperCase()) ||
     (meta.noradId||'').includes(k)
   );
-  const displayName = mapped?.[1]?.displayName || meta.objectName || meta.name || 'SAT';
-  const displayId   = mapped?.[1]?.displayId   || meta.objectId   || meta.noradId || rawKey;
-  meta = { ...meta, displayName, displayId };
+  const displayName   = mapped?.[1]?.displayName   || meta.objectName || meta.name || 'SAT';
+  const displayNameEn = mapped?.[1]?.displayNameEn || displayName;
+  const labelName     = mapped?.[1]?.labelName     || mapped?.[1]?.displayId || meta.objectId || rawKey;
+  const displayId     = mapped?.[1]?.displayId     || meta.objectId || meta.noradId || rawKey;
+  meta = { ...meta, displayName, displayNameEn, labelName, displayId };
 
   // 区分图标
   const isFYBB = displayId.toUpperCase().includes('FYBB');
@@ -979,7 +988,7 @@ function addOneSat(viewer, meta, states, registry) {
       color: Cesium.Color.WHITE, show:true,
     },
     label:{
-      text: displayName,
+      text: window._i18nLang?.() === 'en' ? displayNameEn : displayName,
       fillColor: nameFillColor,
       outlineColor: Cesium.Color.fromCssColorString('#0a3a5c'),
       outlineWidth:4,
@@ -1006,7 +1015,7 @@ function addOneSat(viewer, meta, states, registry) {
     availability: avail,
     position: sampledProp,
     label:{
-      text: displayId,
+      text: labelName,
       font:'500 18px sans-serif',
       fillColor: idFillColor,
       outlineColor: Cesium.Color.BLACK,
