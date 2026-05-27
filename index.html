@@ -388,82 +388,14 @@ html,body{width:100%;height:100%;background:#0d1117;overflow:hidden}
 // 名称/ID 硬性映射（Demo 展示层覆盖）
 // ══════════════════════════════════════════════════
 const DISPLAY_MAP = {
-  // support both Chinese and English display names
-  'Musico':    { displayNameZh: '中国空间站', displayNameEn: 'CSS', displayId: 'Musico' },
-  'CSS':       { displayNameZh: '中国空间站', displayNameEn: 'CSS', displayId: 'Musico' },
-  '1998-067A': { displayNameZh: '中国空间站', displayNameEn: 'CSS', displayId: 'Musico' },
-  '48274':     { displayNameZh: '中国空间站', displayNameEn: 'CSS', displayId: 'Musico' },
-  'TIANHE':    { displayNameZh: '中国空间站', displayNameEn: 'CSS', displayId: 'Musico' },
-  'FYBB#1':    { displayNameZh: '雄彬一号',   displayNameEn: 'HKUST', displayId: 'FYBB#1' },
-  'FYBB1':     { displayNameZh: '雄彬一号',   displayNameEn: 'HKUST', displayId: 'FYBB#1' },
+  'Musico':    { displayName: '中国空间站', displayId: 'Musico' },
+  'CSS':       { displayName: '中国空间站', displayId: 'Musico' },
+  '1998-067A': { displayName: '中国空间站', displayId: 'Musico' },
+  '48274':     { displayName: '中国空间站', displayId: 'Musico' },
+  'TIANHE':    { displayName: '中国空间站', displayId: 'Musico' },
+  'FYBB#1':    { displayName: '雄彬一号',   displayId: 'FYBB#1' },
+  'FYBB1':     { displayName: '雄彬一号',   displayId: 'FYBB#1' },
 };
-
-// current UI language: 'zh' (Chinese) or 'en' (English)
-let LANG = 'zh';
-
-// utilities to get localized display strings
-function getColoredName(meta) {
-  if (!meta) return '';
-  if (LANG === 'en') return meta.displayNameEn || meta.displayNameZh || meta.displayName || '';
-  return meta.displayNameZh || meta.displayName || meta.displayNameEn || '';
-}
-
-function getLeftPanelName(meta) {
-  if (!meta) return '';
-  // English mode: special formatting per user request
-  if (LANG === 'en') {
-    const id = String(meta.displayId || meta.objectId || '').toUpperCase();
-    if (id.includes('FYBB')) {
-      // show HKUST-FYBB#1
-      return `${meta.displayNameEn || meta.displayName || ''}-${meta.displayId}`;
-    }
-    if (id === 'MUSICO' || (meta.displayNameEn && meta.displayNameEn.toUpperCase() === 'CSS')) {
-      // show CSS(China Space Station)
-      return `${meta.displayNameEn || meta.displayName || ''}(China Space Station)`;
-    }
-    return getColoredName(meta);
-  }
-  // Chinese mode: show native name
-  return meta.displayNameZh || meta.displayName || meta.displayNameEn || '';
-}
-
-// Expose a runtime language switcher
-function setLanguage(lang) {
-  LANG = (lang === 'en') ? 'en' : 'zh';
-  try { applyLanguageToRegistry(window.satRegistry || []); } catch(e) { console.warn('applyLanguage failed', e); }
-}
-
-// update all UI/entity labels according to LANG
-function applyLanguageToRegistry(registry) {
-  if (!registry || !Array.isArray(registry)) return;
-  // update Cesium entity labels
-  for (const item of registry) {
-    const meta = item.meta || {};
-    const colored = getColoredName(meta);
-    try {
-      if (item.satEntity?.label) item.satEntity.label.text = colored;
-      // satLabel (ID) remains unchanged per requirement
-      // update any stored DOM card (right panel)
-      if (meta._cardHeaderEl) meta._cardHeaderEl.textContent = colored;
-      if (meta._panelNameEl) meta._panelNameEl.textContent = getLeftPanelName(meta);
-    } catch (e) { console.warn('update item label failed', e); }
-  }
-  // update left panel current name if available
-  const curNameEl = document.getElementById('mName-');
-  if (curNameEl && registry._currentKey) {
-    const found = registry.find(r => r.key === registry._currentKey);
-    if (found) curNameEl.textContent = getLeftPanelName(found.meta);
-  }
-  // update satSelect text if present
-  const satSelect = document.getElementById('satSelect');
-  if (satSelect) {
-    const html = (registry||[]).map((item) => {
-      const txt = getColoredName(item.meta) || item.meta.displayId || item.meta.objectName || '';
-      return `<option value="${item.key}"> ${txt} (${item.meta.displayId || ''})</option>`;
-    }).join('');
-    satSelect.innerHTML = html;
-  }
-}
 
 const FYBB1_TLE_RAW = `FYBB#1
 1 57696U 23127A   26132.29540856  .00002539  00000-0  15861-3 0  9994
@@ -699,10 +631,8 @@ function computeStats(states) {
   function populatePanel(meta, stats) {
   const nameEl = G('mName-');
   if (nameEl) {
-    nameEl.textContent = getLeftPanelName(meta) || meta.displayName || meta.objectName || '-';
-    // store reference for runtime language updates
-    meta._panelNameEl = nameEl;
-    nameEl.style.color = (String(meta.displayId || '').toUpperCase().includes('MUSICO')) ? '#66ccff' : '#00b08d';
+    nameEl.textContent = meta.displayName || meta.objectName || '-';
+    nameEl.style.color = (meta.displayId === 'Musico') ? '#66ccff' : '#00b08d';
   }
   // ID 白字
   const idEl = G('mId-');
@@ -968,8 +898,16 @@ async function createViewer() {
 function addOneSat(viewer, meta, states, registry) {
   if (!states||states.length<2) return null;
 
-  // prepare a key for matching (objectName / objectId / name)
+  // 名称映射：按 objectName / objectId / noradId 做匹配
   const rawKey = meta.objectName||meta.objectId||meta.name||'';
+  const mapped = Object.entries(DISPLAY_MAP).find(([k])=>
+    rawKey.toUpperCase().includes(k.toUpperCase()) ||
+    (meta.objectId||'').toUpperCase().includes(k.toUpperCase()) ||
+    (meta.noradId||'').includes(k)
+  );
+  const displayName = mapped?.[1]?.displayName || meta.objectName || meta.name || 'SAT';
+  const displayId   = mapped?.[1]?.displayId   || meta.objectId   || meta.noradId || rawKey;
+  meta = { ...meta, displayName, displayId };
 
   // 区分图标
   const isFYBB = displayId.toUpperCase().includes('FYBB');
@@ -1009,25 +947,6 @@ function addOneSat(viewer, meta, states, registry) {
   }
   if (!startJD||orbitPositions.length<2) return null;
 
-  // ensure meta contains both language names when available
-  const mapped = Object.entries(DISPLAY_MAP).find(([k])=>
-    rawKey.toUpperCase().includes(k.toUpperCase()) ||
-    (meta.objectId||'').toUpperCase().includes(k.toUpperCase()) ||
-    (meta.noradId||'').includes(k)
-  );
-  if (mapped) {
-    meta.displayNameZh = meta.displayNameZh || mapped[1].displayNameZh || mapped[1].displayName || '';
-    meta.displayNameEn = meta.displayNameEn || mapped[1].displayNameEn || mapped[1].displayName || '';
-    meta.displayId = meta.displayId || mapped[1].displayId || meta.objectId || rawKey;
-  } else {
-    meta.displayNameZh = meta.displayNameZh || meta.displayName || meta.objectName || '';
-    meta.displayNameEn = meta.displayNameEn || meta.displayName || meta.objectName || '';
-    meta.displayId = meta.displayId || meta.objectId || rawKey;
-  }
-
-  const displayId = meta.displayId || meta.objectId || rawKey;
-  const displayName = meta.displayNameEn || meta.displayNameZh || meta.displayName || displayId;
-
   const sourcePrefix = (meta.refFrame||'').includes('TEME') ? 'tle' : 'oem';
   const safeId = `${sourcePrefix}-${String(displayId).trim().toLowerCase().replace(/[^a-z0-9]/g,'-')}`;
   const avail = new Cesium.TimeIntervalCollection([new Cesium.TimeInterval({start:startJD,stop:stopJD})]);
@@ -1060,7 +979,7 @@ function addOneSat(viewer, meta, states, registry) {
       color: Cesium.Color.WHITE, show:true,
     },
     label:{
-      text: getColoredName(meta),
+      text: displayName,
       fillColor: nameFillColor,
       outlineColor: Cesium.Color.fromCssColorString('#0a3a5c'),
       outlineWidth:4,
@@ -1087,7 +1006,7 @@ function addOneSat(viewer, meta, states, registry) {
     availability: avail,
     position: sampledProp,
     label:{
-      text: meta.displayId || displayId,
+      text: displayId,
       font:'500 18px sans-serif',
       fillColor: idFillColor,
       outlineColor: Cesium.Color.BLACK,
@@ -1111,8 +1030,6 @@ function addOneSat(viewer, meta, states, registry) {
   };
   applyOrbitLineBrightness(entry, getOrbitLineBrightness());
   registry.push(entry);
-  // attach registry globally for runtime language switching
-  try { window.satRegistry = registry; } catch (e) {}
   return entry;
 }
 
@@ -1227,12 +1144,10 @@ function bindMultiTargetUI(viewer, registry, sceneRect, timebarApi, autoRotation
   if (registry.length > 1) {
     psSel.style.display = '';
     satSelect.innerHTML = registry.map((item,i)=>
-      `<option value="${item.key}"> ${getColoredName(item.meta)} (${item.meta.displayId})</option>`
+      `<option value="${item.key}"> ${item.meta.displayName} (${item.meta.displayId})</option>`
     ).join('');
   }
   if (current) populatePanel(current.meta, current.stats);
-  // record current key for global operations (language switching)
-  try { registry._currentKey = current && current.key; } catch(e){}
   densityBtns.forEach(b => b.classList.toggle('active', +b.dataset.orbitDays === orbitDensityDays));
   applyOrbitDensity(orbitDensityDays);
   syncOrbitVisibility();
@@ -1242,7 +1157,6 @@ function bindMultiTargetUI(viewer, registry, sceneRect, timebarApi, autoRotation
     const found = registry.find(x=>x.key===e.target.value);
     if (found) {
       current = found;
-      try { registry._currentKey = current.key; } catch(e){}
       populatePanel(current.meta, current.stats);
       const sourceStart = current.startJD || gStart;
       const sourceStop = current.stopJD || gStop;
@@ -1436,7 +1350,7 @@ function initSatStatus(viewer, registry) {
     card.innerHTML = `
       <div class="sat-card-hd">
         <span class="dot" style="color:${dotColor}; background:${dotColor}"></span>
-        <span class="sat-card-name" style="color:${dotColor}">${getColoredName(item.meta)}</span>
+        <span style="color:${dotColor}">${item.meta.displayName}</span>
         <span style="color:#484f58; font-weight:400; font-size:10px">${item.meta.displayId}</span>
       </div>
       <div class="mr"><span class="mk" data-zh="经度" data-en="Lon">经度</span><span class="mv" id="rs-lon-${item.key}">-</span></div>
@@ -1448,8 +1362,6 @@ function initSatStatus(viewer, registry) {
       <div class="mr"><span class="mk" data-zh="Z km" data-en="Z km">Z km</span><span class="mv" id="rs-z-${item.key}">-</span></div>
     `;
     area.appendChild(card);
-    // store reference to header element for dynamic language switching
-    try { item.meta._cardHeaderEl = card.querySelector('.sat-card-name'); } catch(e) {}
     return { item, key: item.key };
   });
 
