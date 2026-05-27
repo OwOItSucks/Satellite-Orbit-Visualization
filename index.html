@@ -388,13 +388,63 @@ html,body{width:100%;height:100%;background:#0d1117;overflow:hidden}
 // 名称/ID 硬性映射（Demo 展示层覆盖）
 // ══════════════════════════════════════════════════
 const DISPLAY_MAP = {
-  'Musico':    { displayName: '中国空间站', displayNameEn: 'China Space Station', labelName: 'CSS',  displayId: 'Musico' },
-  'CSS':       { displayName: '中国空间站', displayNameEn: 'China Space Station', labelName: 'CSS',  displayId: 'Musico' },
-  '1998-067A': { displayName: '中国空间站', displayNameEn: 'China Space Station', labelName: 'CSS',  displayId: 'Musico' },
-  '48274':     { displayName: '中国空间站', displayNameEn: 'China Space Station', labelName: 'CSS',  displayId: 'Musico' },
-  'TIANHE':    { displayName: '中国空间站', displayNameEn: 'China Space Station', labelName: 'CSS',  displayId: 'Musico' },
-  'FYBB#1':    { displayName: '雄彬一号',   displayNameEn: 'HKUST',               labelName: 'HKUST', displayId: 'FYBB#1' },
-  'FYBB1':     { displayName: '雄彬一号',   displayNameEn: 'HKUST',               labelName: 'HKUST', displayId: 'FYBB#1' },
+  'Musico':    {
+    displayName: '中国空间站',
+    displayId: 'Musico',
+    labelNameZh: '中国空间站',
+    labelNameEn: 'CSS',
+    panelNameZh: '中国空间站',
+    panelNameEn: 'CSS(China Space Station)'
+  },
+  'CSS':       {
+    displayName: '中国空间站',
+    displayId: 'Musico',
+    labelNameZh: '中国空间站',
+    labelNameEn: 'CSS',
+    panelNameZh: '中国空间站',
+    panelNameEn: 'CSS(China Space Station)'
+  },
+  '1998-067A': {
+    displayName: '中国空间站',
+    displayId: 'Musico',
+    labelNameZh: '中国空间站',
+    labelNameEn: 'CSS',
+    panelNameZh: '中国空间站',
+    panelNameEn: 'CSS(China Space Station)'
+  },
+  '48274':     {
+    displayName: '中国空间站',
+    displayId: 'Musico',
+    labelNameZh: '中国空间站',
+    labelNameEn: 'CSS',
+    panelNameZh: '中国空间站',
+    panelNameEn: 'CSS(China Space Station)'
+  },
+  'TIANHE':    {
+    displayName: '中国空间站',
+    displayId: 'Musico',
+    labelNameZh: '中国空间站',
+    labelNameEn: 'CSS',
+    panelNameZh: '中国空间站',
+    panelNameEn: 'CSS(China Space Station)'
+  },
+
+  'FYBB#1':    {
+    displayName: '雄彬一号',
+    displayId: 'FYBB#1',
+    labelNameZh: '雄彬一号',
+    labelNameEn: 'HKUST',
+    panelNameZh: '雄彬一号',
+    panelNameEn: 'HKUST-FYBB#1'
+  },
+  'FYBB1':     {
+    displayName: '雄彬一号',
+    displayId: 'FYBB#1',
+    labelNameZh: '雄彬一号',
+    labelNameEn: 'HKUST',
+    panelNameZh: '雄彬一号',
+    panelNameEn: 'HKUST-FYBB#1'
+  },
 };
    
 const FYBB1_TLE_RAW = `FYBB#1
@@ -631,31 +681,33 @@ function computeStats(states) {
   function populatePanel(meta, stats) {
   const nameEl = G('mName-');
   if (nameEl) {
+    nameEl.dataset.zhName = meta.panelNameZh || meta.displayName || meta.objectName || '-';
+    nameEl.dataset.enName = meta.panelNameEn || meta.displayName || meta.objectName || '-';
+
     const isEn = window._i18nLang?.() === 'en';
-    const isFYBB = (meta.displayId || '').toUpperCase().includes('FYBB');
-    const zhText = meta.displayName || meta.objectName || '-';
-    const enText = isFYBB
-      ? `HKUST-FYBB#1`
-      : `CSS (China Space Station)`;
-    nameEl.dataset.zhName = zhText;
-    nameEl.dataset.enName = enText;
-    nameEl.textContent = isEn ? enText : zhText;
-    nameEl.style.color = isFYBB ? '#00b08d' : '#66ccff';
+    nameEl.textContent = isEn ? nameEl.dataset.enName : nameEl.dataset.zhName;
+
+    nameEl.style.color = (meta.displayId === 'Musico') ? '#66ccff' : '#00b08d';
   }
+
   const idEl = G('mId-');
-  if (idEl) { idEl.textContent = meta.displayId || meta.objectId || '-'; idEl.style.color = '#ffffff'; }
+  if (idEl) {
+    idEl.textContent = meta.displayId || meta.objectId || '-';
+    idEl.style.color = '#ffffff';
+  }
+
   T('mFrame-', meta.refFrame || 'TEME');
   T('mTsys-', meta.timeSystem || 'UTC');
   T('mCenter-', meta.centerName || 'EARTH');
   T('kCount-', stats.count ?? '-');
   T('kDays-',  stats.days ?? '-');
   T('kAlt-',   stats.altMean != null ? `${stats.altMean} km` : '-');
-  T('kVmax-',  stats.vmax   != null ? `${stats.vmax} km/s` : '-');
+  T('kVmax-',  stats.vmax != null ? `${stats.vmax} km/s` : '-');
+
   const fmt = s => s ? String(s).replace('T',' ').substring(0,16) : '-';
   T('mStart-', fmt(meta.startTime));
   T('mStop-',  fmt(meta.stopTime));
 }
-
 // ══════════════════════════════════════════════════
 // 卫星图标
 // ══════════════════════════════════════════════════
@@ -906,17 +958,30 @@ function addOneSat(viewer, meta, states, registry) {
   if (!states||states.length<2) return null;
 
   // 名称映射：按 objectName / objectId / noradId 做匹配
-  const rawKey = meta.objectName||meta.objectId||meta.name||'';
-  const mapped = Object.entries(DISPLAY_MAP).find(([k])=>
+  const rawKey = meta.objectName || meta.objectId || meta.name || '';
+  const mapped = Object.entries(DISPLAY_MAP).find(([k]) =>
     rawKey.toUpperCase().includes(k.toUpperCase()) ||
-    (meta.objectId||'').toUpperCase().includes(k.toUpperCase()) ||
-    (meta.noradId||'').includes(k)
+    (meta.objectId || '').toUpperCase().includes(k.toUpperCase()) ||
+    (meta.noradId || '').includes(k)
   );
-  const displayName   = mapped?.[1]?.displayName   || meta.objectName || meta.name || 'SAT';
-  const displayNameEn = mapped?.[1]?.displayNameEn || displayName;
-  const labelName     = mapped?.[1]?.labelName     || mapped?.[1]?.displayId || meta.objectId || rawKey;
-  const displayId     = mapped?.[1]?.displayId     || meta.objectId || meta.noradId || rawKey;
-  meta = { ...meta, displayName, displayNameEn, labelName, displayId };
+
+  const displayName = mapped?.[1]?.displayName || meta.objectName || meta.name || 'SAT';
+  const displayId   = mapped?.[1]?.displayId   || meta.objectId || meta.noradId || rawKey;
+
+  const labelNameZh = mapped?.[1]?.labelNameZh || displayName;
+  const labelNameEn = mapped?.[1]?.labelNameEn || displayName;
+  const panelNameZh = mapped?.[1]?.panelNameZh || displayName;
+  const panelNameEn = mapped?.[1]?.panelNameEn || displayName;
+
+  meta = {
+    ...meta,
+    displayName,
+    displayId,
+    labelNameZh,
+    labelNameEn,
+    panelNameZh,
+    panelNameEn
+  };
 
   // 区分图标
   const isFYBB = displayId.toUpperCase().includes('FYBB');
@@ -988,7 +1053,12 @@ function addOneSat(viewer, meta, states, registry) {
       color: Cesium.Color.WHITE, show:true,
     },
     label:{
-      text: window._i18nLang?.() === 'en' ? displayNameEn : displayName,
+      text: new Cesium.CallbackProperty(() => {
+        const isEn = window._i18nLang?.() === 'en';
+        return isEn
+          ? (meta.labelNameEn || meta.displayName || '')
+          : (meta.labelNameZh || meta.displayName || '');
+      }, false),
       fillColor: nameFillColor,
       outlineColor: Cesium.Color.fromCssColorString('#0a3a5c'),
       outlineWidth:4,
@@ -1359,8 +1429,15 @@ function initSatStatus(viewer, registry) {
     card.innerHTML = `
       <div class="sat-card-hd">
         <span class="dot" style="color:${dotColor}; background:${dotColor}"></span>
-        <span style="color:${dotColor}">${item.meta.displayName}</span>
-        <span style="color:#484f58; font-weight:400; font-size:10px">${item.meta.displayId}</span>
+        <span
+           style="color:${dotColor}"
+           data-sat-zh="${item.meta.labelNameZh || item.meta.displayName}"
+           data-sat-en="${item.meta.labelNameEn || item.meta.displayName}"
+         >
+         ${window._i18nLang?.() === 'en'? (item.meta.labelNameEn || item.meta.displayName)
+         : (item.meta.labelNameZh || item.meta.displayName)}
+         </span>        
+      <span style="color:#484f58; font-weight:400; font-size:10px">${item.meta.displayId}</span>
       </div>
       <div class="mr"><span class="mk" data-zh="经度" data-en="Lon">经度</span><span class="mv" id="rs-lon-${item.key}">-</span></div>
       <div class="mr"><span class="mk" data-zh="纬度" data-en="Lat">纬度</span><span class="mv" id="rs-lat-${item.key}">-</span></div>
