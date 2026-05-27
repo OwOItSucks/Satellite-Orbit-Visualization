@@ -631,15 +631,12 @@ function computeStats(states) {
   function populatePanel(meta, stats) {
   const nameEl = G('mName-');
   if (nameEl) {
-    const isEn = window._i18nLang?.() === 'en';
-    nameEl.textContent = (isEn ? meta.displayNameEn : meta.displayName) || meta.objectName || '-';
-    nameEl.style.color = (meta.displayId === 'Musico') ? '#66ccff' : '#00b08d';
     nameEl.dataset.zhName = meta.displayName || meta.objectName || '-';
     nameEl.dataset.enName = meta.displayNameEn || meta.objectName || '-';
     const isEn = window._i18nLang?.() === 'en';
-    nameEl.textContent = isEn ? nameEl.dataset.enName : nameEl.dataset.zhName; 
+    nameEl.textContent = isEn ? nameEl.dataset.enName : nameEl.dataset.zhName;
+    nameEl.style.color = (meta.displayId === 'CSS') ? '#66ccff' : '#00b08d';
   }
-  // ID 白字
   const idEl = G('mId-');
   if (idEl) { idEl.textContent = meta.displayId || meta.objectId || '-'; idEl.style.color = '#ffffff'; }
   T('mFrame-', meta.refFrame || 'TEME');
@@ -1355,7 +1352,8 @@ function initSatStatus(viewer, registry) {
     card.innerHTML = `
       <div class="sat-card-hd">
         <span class="dot" style="color:${dotColor}; background:${dotColor}"></span>
-        <span style="color:${dotColor}">${window._i18nLang?.() === 'en' ? (item.meta.displayNameEn || item.meta.displayName) : item.meta.displayName}</span>
+        <span style="color:${dotColor}" data-sat-zh="${item.meta.displayName}" data-sat-en="${item.meta.displayNameEn || item.meta.displayName}">
+        ${window._i18nLang?.() === 'en' ? (item.meta.displayNameEn || item.meta.displayName) : item.meta.displayName}</span>        
         <span style="color:#484f58; font-weight:400; font-size:10px">${item.meta.displayId}</span>
       </div>
       <div class="mr"><span class="mk" data-zh="经度" data-en="Lon">经度</span><span class="mv" id="rs-lon-${item.key}">-</span></div>
@@ -1774,63 +1772,58 @@ async function init() {
   let lang = 'en';
 
   function applyLang(l) {
-  lang = l;
-  document.documentElement.lang = l === 'en' ? 'en' : 'zh-CN';
+    lang = l;
+    document.documentElement.lang = l === 'en' ? 'en' : 'zh-CN';
 
-  const attr = l === 'en' ? 'data-en' : 'data-zh';
-  document.querySelectorAll('[' + attr + ']').forEach(el => {
-    if (el.children.length === 0) el.textContent = el.getAttribute(attr);
-  });
+    const attr = l === 'en' ? 'data-en' : 'data-zh';
+    document.querySelectorAll('[' + attr + ']').forEach(el => {
+      if (el.children.length === 0) el.textContent = el.getAttribute(attr);
+    });
 
-  const btn = document.getElementById('btnLang');
-  if (btn) btn.textContent = l === 'en' ? '中' : 'EN';
+    const btn = document.getElementById('btnLang');
+    if (btn) btn.textContent = l === 'en' ? '中' : 'EN';
 
-  document.querySelectorAll('#satStatusArea [' + attr + ']').forEach(el => {
-    if (el.children.length === 0) el.textContent = el.getAttribute(attr);
-  });
+    document.querySelectorAll('#satStatusArea [' + attr + ']').forEach(el => {
+      if (el.children.length === 0) el.textContent = el.getAttribute(attr);
+    });
 
-  // ── 状态按钮同步 ── 
-  const btnFollow = document.getElementById('btnFollow');
-  if (btnFollow) {
-    const isTracking = btnFollow.classList.contains('active');
-    btnFollow.textContent = isTracking
-      ? (l === 'en' ? btnFollow.dataset.enOn  : btnFollow.dataset.zhOn)
-      : (l === 'en' ? btnFollow.dataset.enOff : btnFollow.dataset.zhOff);
-  }
-
-  const btnOrbit = document.getElementById('btnToggleOtherOrbit');
-  if (btnOrbit) {
-    const orbitShowing = btnOrbit.classList.contains('active');
-    btnOrbit.textContent = orbitShowing
-      ? (l === 'en' ? btnOrbit.dataset.enOn  : btnOrbit.dataset.zhOn)
-      : (l === 'en' ? btnOrbit.dataset.enOff : btnOrbit.dataset.zhOff);
-  }
-  
-  // 刷新左侧 panel 的卫星名称（因为它是 JS 写入的，不走 data-zh/en）
-  document.querySelectorAll('[id^="mName-"]').forEach(el => {
-    const zhName = el.dataset.zhName;
-    const enName = el.dataset.enName;
-    if (zhName && enName) {
-      el.textContent = l === 'en' ? enName : zhName;
+    const btnFollow = document.getElementById('btnFollow');
+    if (btnFollow) {
+      const isTracking = btnFollow.classList.contains('active');
+      btnFollow.textContent = isTracking
+        ? (l === 'en' ? btnFollow.dataset.enOn  : btnFollow.dataset.zhOn)
+        : (l === 'en' ? btnFollow.dataset.enOff : btnFollow.dataset.zhOff);
     }
+
+    const btnOrbit = document.getElementById('btnToggleOtherOrbit');
+    if (btnOrbit) {
+      const orbitShowing = btnOrbit.classList.contains('active');
+      btnOrbit.textContent = orbitShowing
+        ? (l === 'en' ? btnOrbit.dataset.enOn  : btnOrbit.dataset.zhOn)
+        : (l === 'en' ? btnOrbit.dataset.enOff : btnOrbit.dataset.zhOff);
+    }
+
+    // 刷新左侧 panel 卫星名
+    document.querySelectorAll('[id^="mName-"]').forEach(el => {
+      if (el.dataset.zhName && el.dataset.enName) {
+        el.textContent = l === 'en' ? el.dataset.enName : el.dataset.zhName;
+      }
+    });
+
+    // 刷新右侧状态卡片卫星名
+    document.querySelectorAll('.sat-card-hd [data-sat-zh]').forEach(el => {
+      el.textContent = l === 'en' ? el.dataset.satEn : el.dataset.satZh;
+    });
+  }
+
+  document.getElementById('btnLang')?.addEventListener('click', () => {
+    applyLang(lang === 'zh' ? 'en' : 'zh');
   });
 
-  // 刷新右侧状态卡片的卫星名称
-  document.querySelectorAll('.sat-card-hd [data-zh-name]').forEach(el => {
-    el.textContent = l === 'en' ? el.dataset.enName : el.dataset.zhName;
-  });
+  applyLang('en');
 
-
-} // ← applyLang 的结束括号
-
-document.getElementById('btnLang')?.addEventListener('click', () => {
-  applyLang(lang === 'zh' ? 'en' : 'zh');
-});
-
-applyLang('en'); // 初始化时直接应用英文
-
-window._i18nApply = applyLang;
-window._i18nLang  = () => lang;
+  window._i18nApply = applyLang;
+  window._i18nLang  = () => lang;
 })();
 
 
