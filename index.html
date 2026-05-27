@@ -388,13 +388,13 @@ html,body{width:100%;height:100%;background:#0d1117;overflow:hidden}
 // 名称/ID 硬性映射（Demo 展示层覆盖）
 // ══════════════════════════════════════════════════
 const DISPLAY_MAP = {
-  'Musico':    { displayName: '中国空间站', displayNameEn: 'China Space Station', displayId: 'CSS' },
-  'CSS':       { displayName: '中国空间站', displayNameEn: 'China Space Station', displayId: 'CSS' },
-  '1998-067A': { displayName: '中国空间站', displayNameEn: 'China Space Station', displayId: 'CSS' },
-  '48274':     { displayName: '中国空间站', displayNameEn: 'China Space Station', displayId: 'CSS' },
-  'TIANHE':    { displayName: '中国空间站', displayNameEn: 'China Space Station', displayId: 'CSS' },
-  'FYBB#1':    { displayName: '雄彬一号',   displayNameEn: 'HKUST',               displayId: 'FYBB#1' },
-  'FYBB1':     { displayName: '雄彬一号',   displayNameEn: 'HKUST',               displayId: 'FYBB#1' },
+  'Musico':    { displayName: '中国空间站', displayId: 'Musico' },
+  'CSS':       { displayName: '中国空间站', displayId: 'Musico' },
+  '1998-067A': { displayName: '中国空间站', displayId: 'Musico' },
+  '48274':     { displayName: '中国空间站', displayId: 'Musico' },
+  'TIANHE':    { displayName: '中国空间站', displayId: 'Musico' },
+  'FYBB#1':    { displayName: '雄彬一号',   displayId: 'FYBB#1' },
+  'FYBB1':     { displayName: '雄彬一号',   displayId: 'FYBB#1' },
 };
 
 const FYBB1_TLE_RAW = `FYBB#1
@@ -631,12 +631,10 @@ function computeStats(states) {
   function populatePanel(meta, stats) {
   const nameEl = G('mName-');
   if (nameEl) {
-    nameEl.dataset.zhName = meta.displayName || meta.objectName || '-';
-    nameEl.dataset.enName = meta.displayNameEn || meta.objectName || '-';
-    const isEn = window._i18nLang?.() === 'en';
-    nameEl.textContent = isEn ? nameEl.dataset.enName : nameEl.dataset.zhName;
-    nameEl.style.color = (meta.displayId === 'CSS') ? '#66ccff' : '#00b08d';
+    nameEl.textContent = meta.displayName || meta.objectName || '-';
+    nameEl.style.color = (meta.displayId === 'Musico') ? '#66ccff' : '#00b08d';
   }
+  // ID 白字
   const idEl = G('mId-');
   if (idEl) { idEl.textContent = meta.displayId || meta.objectId || '-'; idEl.style.color = '#ffffff'; }
   T('mFrame-', meta.refFrame || 'TEME');
@@ -1352,8 +1350,7 @@ function initSatStatus(viewer, registry) {
     card.innerHTML = `
       <div class="sat-card-hd">
         <span class="dot" style="color:${dotColor}; background:${dotColor}"></span>
-        <span style="color:${dotColor}" data-sat-zh="${item.meta.displayName}" data-sat-en="${item.meta.displayNameEn || item.meta.displayName}">
-        ${window._i18nLang?.() === 'en' ? (item.meta.displayNameEn || item.meta.displayName) : item.meta.displayName}</span>        
+        <span style="color:${dotColor}">${item.meta.displayName}</span>
         <span style="color:#484f58; font-weight:400; font-size:10px">${item.meta.displayId}</span>
       </div>
       <div class="mr"><span class="mk" data-zh="经度" data-en="Lon">经度</span><span class="mv" id="rs-lon-${item.key}">-</span></div>
@@ -1769,7 +1766,7 @@ async function init() {
 // i18n — 中英文切换
 // ══════════════════════════════════════════════════
 (function initI18n() {
-  let lang = 'en';
+  let lang = 'zh';
 
   function applyLang(l) {
     lang = l;
@@ -1787,6 +1784,7 @@ async function init() {
       if (el.children.length === 0) el.textContent = el.getAttribute(attr);
     });
 
+    // ── 状态按钮同步 ── ← 必须在 applyLang 的 { } 里面
     const btnFollow = document.getElementById('btnFollow');
     if (btnFollow) {
       const isTracking = btnFollow.classList.contains('active');
@@ -1803,24 +1801,11 @@ async function init() {
         : (l === 'en' ? btnOrbit.dataset.enOff : btnOrbit.dataset.zhOff);
     }
 
-    // 刷新左侧 panel 卫星名
-    document.querySelectorAll('[id^="mName-"]').forEach(el => {
-      if (el.dataset.zhName && el.dataset.enName) {
-        el.textContent = l === 'en' ? el.dataset.enName : el.dataset.zhName;
-      }
-    });
-
-    // 刷新右侧状态卡片卫星名
-    document.querySelectorAll('.sat-card-hd [data-sat-zh]').forEach(el => {
-      el.textContent = l === 'en' ? el.dataset.satEn : el.dataset.satZh;
-    });
-  }
+  } // ← applyLang 的结束括号
 
   document.getElementById('btnLang')?.addEventListener('click', () => {
     applyLang(lang === 'zh' ? 'en' : 'zh');
   });
-
-  applyLang('en');
 
   window._i18nApply = applyLang;
   window._i18nLang  = () => lang;
