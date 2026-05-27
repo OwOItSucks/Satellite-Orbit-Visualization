@@ -1853,12 +1853,13 @@ async function init() {
   // ── UI ──
   addOcclusionFade(viewer, registry);
   try { initSatStatus(viewer, registry); } catch(e) { console.warn('initSatStatus error', e); }
-  window._i18nRefresh?.();
   // 初始化底图切换器并传入场景影像 layer，以便切换底图时保留并置顶该图层
   try { initBasemapSwitcher(viewer, sceneLayer); } catch(e) { console.warn('initBasemapSwitcher error', e); }
   const timebarApi = initTimebar(viewer, gStart, gStop);
   bindMultiTargetUI(viewer, registry, sceneRect, timebarApi, autoRotation);
-
+   
+  window._i18nRefresh?.();
+   
   viewer.flyTo(viewer.entities, {duration:2});
 }
 
