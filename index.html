@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -388,13 +388,69 @@ html,body{width:100%;height:100%;background:#0d1117;overflow:hidden}
 // 名称/ID 硬性映射（Demo 展示层覆盖）
 // ══════════════════════════════════════════════════
 const DISPLAY_MAP = {
-  'Musico':    { displayName: '中国空间站', displayId: 'Musico' },
-  'CSS':       { displayName: '中国空间站', displayId: 'Musico' },
-  '1998-067A': { displayName: '中国空间站', displayId: 'Musico' },
-  '48274':     { displayName: '中国空间站', displayId: 'Musico' },
-  'TIANHE':    { displayName: '中国空间站', displayId: 'Musico' },
-  'FYBB#1':    { displayName: '雄彬一号',   displayId: 'FYBB#1' },
-  'FYBB1':     { displayName: '雄彬一号',   displayId: 'FYBB#1' },
+  'Musico':    {
+    displayNameZh: '中国空间站',
+    displayNameEn: 'CSS(China Space Station)',
+    displayLabelEn: 'CSS',
+    optionNameZh: '中国空间站 (Musico)',
+    optionNameEn: 'CSS(Musico)',
+    cardNameEn: 'CSS',
+    displayId: 'Musico',
+  },
+  'CSS':       {
+    displayNameZh: '中国空间站',
+    displayNameEn: 'CSS(China Space Station)',
+    displayLabelEn: 'CSS',
+    optionNameZh: '中国空间站 (Musico)',
+    optionNameEn: 'CSS(Musico)',
+    cardNameEn: 'CSS',
+    displayId: 'Musico',
+  },
+  '1998-067A': {
+    displayNameZh: '中国空间站',
+    displayNameEn: 'CSS(China Space Station)',
+    displayLabelEn: 'CSS',
+    optionNameZh: '中国空间站 (Musico)',
+    optionNameEn: 'CSS(Musico)',
+    cardNameEn: 'CSS',
+    displayId: 'Musico',
+  },
+  '48274':     {
+    displayNameZh: '中国空间站',
+    displayNameEn: 'CSS(China Space Station)',
+    displayLabelEn: 'CSS',
+    optionNameZh: '中国空间站 (Musico)',
+    optionNameEn: 'CSS(Musico)',
+    cardNameEn: 'CSS',
+    displayId: 'Musico',
+  },
+  'TIANHE':    {
+    displayNameZh: '中国空间站',
+    displayNameEn: 'CSS(China Space Station)',
+    displayLabelEn: 'CSS',
+    optionNameZh: '中国空间站 (Musico)',
+    optionNameEn: 'CSS(Musico)',
+    cardNameEn: 'CSS',
+    displayId: 'Musico',
+  },
+  'FYBB#1':    {
+    displayNameZh: '雄彬一号',
+    displayNameEn: 'HKUST-FYBB#1',
+    displayLabelEn: 'HKUST',
+    optionNameZh: '雄彬一号 (FYBB#1)',
+    optionNameEn: 'HKUST-FYBB#1',
+    cardNameEn: 'HKUST',
+    displayId: 'FYBB#1',
+  },
+  'FYBB1':     {
+    displayNameZh: '雄彬一号',
+    displayNameEn: 'HKUST-FYBB#1',
+    displayLabelEn: 'HKUST',
+    optionNameZh: '雄彬一号 (FYBB#1)',
+    optionNameEn: 'HKUST-FYBB#1',
+    cardNameEn: 'HKUST',
+    displayId: 'FYBB#1',
+  },
 };
 
 const FYBB1_TLE_RAW = `FYBB#1
@@ -612,6 +668,25 @@ function applyOrbitLineBrightness(entry, brightness) {
     console.warn('apply orbit brightness failed', e);
   }
 }
+function getLang() {
+  return document.documentElement.lang === 'en' ? 'en' : 'zh';
+}
+function getLocalizedName(meta) {
+  if (!meta) return '-';
+  return getLang() === 'en' ? (meta.displayNameEn || meta.displayNameZh || meta.displayName || '-') : (meta.displayNameZh || meta.displayName || '-');
+}
+function getLocalizedLabel(meta) {
+  if (!meta) return '-';
+  return getLang() === 'en' ? (meta.displayLabelEn || meta.displayNameEn || meta.displayNameZh || '-') : (meta.displayNameZh || meta.displayName || '-');
+}
+function getLocalizedOption(meta) {
+  if (!meta) return '-';
+  return getLang() === 'en' ? (meta.optionNameEn || meta.displayNameEn || meta.displayNameZh || '-') : (meta.optionNameZh || `${meta.displayNameZh || meta.displayName} (${meta.displayId || ''})`);
+}
+function getLocalizedCardName(meta) {
+  if (!meta) return '-';
+  return getLang() === 'en' ? (meta.cardNameEn || meta.displayLabelEn || meta.displayNameEn || meta.displayNameZh || '-') : (meta.displayNameZh || meta.displayName || '-');
+}
 function computeStats(states) {
   const R = 6371;
   let altSum = 0, vmax = 0;
@@ -631,7 +706,7 @@ function computeStats(states) {
   function populatePanel(meta, stats) {
   const nameEl = G('mName-');
   if (nameEl) {
-    nameEl.textContent = meta.displayName || meta.objectName || '-';
+    nameEl.textContent = getLocalizedName(meta);
     nameEl.style.color = (meta.displayId === 'Musico') ? '#66ccff' : '#00b08d';
   }
   // ID 白字
@@ -905,9 +980,15 @@ function addOneSat(viewer, meta, states, registry) {
     (meta.objectId||'').toUpperCase().includes(k.toUpperCase()) ||
     (meta.noradId||'').includes(k)
   );
-  const displayName = mapped?.[1]?.displayName || meta.objectName || meta.name || 'SAT';
+  const displayNameZh = mapped?.[1]?.displayNameZh || meta.objectName || meta.name || 'SAT';
+  const displayNameEn = mapped?.[1]?.displayNameEn || displayNameZh;
   const displayId   = mapped?.[1]?.displayId   || meta.objectId   || meta.noradId || rawKey;
-  meta = { ...meta, displayName, displayId };
+  const displayLabelEn = mapped?.[1]?.displayLabelEn || displayNameEn;
+  const optionNameZh = mapped?.[1]?.optionNameZh || `${displayNameZh} (${displayId})`;
+  const optionNameEn = mapped?.[1]?.optionNameEn || displayNameEn;
+  const cardNameEn = mapped?.[1]?.cardNameEn || displayLabelEn;
+  const displayName = displayNameZh;
+  meta = { ...meta, displayName, displayNameZh, displayNameEn, displayLabelEn, optionNameZh, optionNameEn, cardNameEn, displayId };
 
   // 区分图标
   const isFYBB = displayId.toUpperCase().includes('FYBB');
@@ -979,7 +1060,7 @@ function addOneSat(viewer, meta, states, registry) {
       color: Cesium.Color.WHITE, show:true,
     },
     label:{
-      text: displayName,
+      text: getLang() === 'en' ? displayLabelEn : displayName,
       fillColor: nameFillColor,
       outlineColor: Cesium.Color.fromCssColorString('#0a3a5c'),
       outlineWidth:4,
@@ -1143,11 +1224,29 @@ function bindMultiTargetUI(viewer, registry, sceneRect, timebarApi, autoRotation
 
   if (registry.length > 1) {
     psSel.style.display = '';
-    satSelect.innerHTML = registry.map((item,i)=>
-      `<option value="${item.key}"> ${item.meta.displayName} (${item.meta.displayId})</option>`
+    satSelect.innerHTML = registry.map(item =>
+      `<option value="${item.key}" data-zh="${item.meta.optionNameZh}" data-en="${item.meta.optionNameEn}"${item.key===current.key ? ' selected' : ''}>${getLocalizedOption(item.meta)}</option>`
     ).join('');
   }
   if (current) populatePanel(current.meta, current.stats);
+
+  const refreshLanguageUI = () => {
+    if (satSelect) {
+      const selectedKey = satSelect.value || current?.key;
+      satSelect.innerHTML = registry.map(item =>
+        `<option value="${item.key}" data-zh="${item.meta.optionNameZh}" data-en="${item.meta.optionNameEn}"${item.key===selectedKey ? ' selected' : ''}>${getLocalizedOption(item.meta)}</option>`
+      ).join('');
+      if (selectedKey) satSelect.value = selectedKey;
+    }
+    if (current) populatePanel(current.meta, current.stats);
+    registry.forEach(item => {
+      if (item.satEntity?.label) {
+        item.satEntity.label.text = getLocalizedLabel(item.meta);
+      }
+    });
+  };
+  window._i18nRefresh = refreshLanguageUI;
+
   densityBtns.forEach(b => b.classList.toggle('active', +b.dataset.orbitDays === orbitDensityDays));
   applyOrbitDensity(orbitDensityDays);
   syncOrbitVisibility();
@@ -1350,7 +1449,7 @@ function initSatStatus(viewer, registry) {
     card.innerHTML = `
       <div class="sat-card-hd">
         <span class="dot" style="color:${dotColor}; background:${dotColor}"></span>
-        <span style="color:${dotColor}">${item.meta.displayName}</span>
+        <span data-zh="${item.meta.displayNameZh}" data-en="${item.meta.cardNameEn}" style="color:${dotColor}">${getLocalizedCardName(item.meta)}</span>
         <span style="color:#484f58; font-weight:400; font-size:10px">${item.meta.displayId}</span>
       </div>
       <div class="mr"><span class="mk" data-zh="经度" data-en="Lon">经度</span><span class="mv" id="rs-lon-${item.key}">-</span></div>
@@ -1766,7 +1865,7 @@ async function init() {
 // i18n — 中英文切换
 // ══════════════════════════════════════════════════
 (function initI18n() {
-  let lang = 'zh';
+  let lang = 'en';
 
   function applyLang(l) {
     lang = l;
@@ -1801,11 +1900,14 @@ async function init() {
         : (l === 'en' ? btnOrbit.dataset.enOff : btnOrbit.dataset.zhOff);
     }
 
+    window._i18nRefresh?.();
   } // ← applyLang 的结束括号
 
   document.getElementById('btnLang')?.addEventListener('click', () => {
     applyLang(lang === 'zh' ? 'en' : 'zh');
   });
+
+  applyLang('en');
 
   window._i18nApply = applyLang;
   window._i18nLang  = () => lang;
