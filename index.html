@@ -669,7 +669,10 @@ function applyOrbitLineBrightness(entry, brightness) {
   }
 }
 function getLang() {
-  return document.documentElement.lang === 'en' ? 'en' : 'zh';
+  const raw = (document.documentElement.getAttribute('lang') || '').toLowerCase();
+  if (raw.startsWith('en')) return 'en';
+  if (raw.startsWith('zh')) return 'zh';
+  return 'en'; // 默认英文，和页面初始 lang="en" 一致
 }
 function getLocalizedName(meta) {
   if (!meta) return '-';
