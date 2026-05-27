@@ -1858,7 +1858,9 @@ async function init() {
   const timebarApi = initTimebar(viewer, gStart, gStop);
   bindMultiTargetUI(viewer, registry, sceneRect, timebarApi, autoRotation);
    
-  window._i18nRefresh?.();
+  // Re-apply global i18n after all dynamic UI is initialized so
+  // elements created later (e.g. satStatusArea) get translated.
+  window._i18nApply?.(window._i18nLang?.());
    
   viewer.flyTo(viewer.entities, {duration:2});
 }
