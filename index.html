@@ -219,7 +219,7 @@ html,body{width:100%;height:100%;background:#0d1117;overflow:hidden}
 <div id="banner">
   <div class="b-title">
     <span class="hkust">HKUST</span> ·
-    <span class="musico">Musico</span>&nbsp;&nbsp;&nbsp;&amp;&nbsp;&nbsp;&nbsp;
+    <span class="musico">MUSICO</span>&nbsp;&nbsp;&nbsp;&amp;&nbsp;&nbsp;&nbsp;
     <span class="fybb">FYBB#1</span> ·
     <span data-zh="卫星轨道可视化" data-en="Satellite Orbit Visualization">Satellite Orbit Visualization</span>
   </div>
@@ -388,50 +388,50 @@ html,body{width:100%;height:100%;background:#0d1117;overflow:hidden}
 // 名称/ID 硬性映射（Demo 展示层覆盖）
 // ══════════════════════════════════════════════════
 const DISPLAY_MAP = {
-  'Musico':    {
+  'MUSICO':    {
     displayNameZh: '中国空间站',
     displayNameEn: 'CSS(China Space Station)',
     displayLabelEn: 'CSS',
-    optionNameZh: '中国空间站 (Musico)',
-    optionNameEn: 'CSS(Musico)',
+    optionNameZh: '中国空间站 (MUSICO)',
+    optionNameEn: 'CSS(MUSICO)',
     cardNameEn: 'CSS',
-    displayId: 'Musico',
+    displayId: 'MUSICO',
   },
   'CSS':       {
     displayNameZh: '中国空间站',
     displayNameEn: 'CSS(China Space Station)',
     displayLabelEn: 'CSS',
-    optionNameZh: '中国空间站 (Musico)',
-    optionNameEn: 'CSS(Musico)',
+    optionNameZh: '中国空间站 (MUSICO)',
+    optionNameEn: 'CSS(MUSICO)',
     cardNameEn: 'CSS',
-    displayId: 'Musico',
+    displayId: 'MUSICO',
   },
   '1998-067A': {
     displayNameZh: '中国空间站',
     displayNameEn: 'CSS(China Space Station)',
     displayLabelEn: 'CSS',
-    optionNameZh: '中国空间站 (Musico)',
-    optionNameEn: 'CSS(Musico)',
+    optionNameZh: '中国空间站 (MUSICO)',
+    optionNameEn: 'CSS(MUSICO)',
     cardNameEn: 'CSS',
-    displayId: 'Musico',
+    displayId: 'MUSICO',
   },
   '48274':     {
     displayNameZh: '中国空间站',
     displayNameEn: 'CSS(China Space Station)',
     displayLabelEn: 'CSS',
-    optionNameZh: '中国空间站 (Musico)',
-    optionNameEn: 'CSS(Musico)',
+    optionNameZh: '中国空间站 (MUSICO)',
+    optionNameEn: 'CSS(MUSICO)',
     cardNameEn: 'CSS',
-    displayId: 'Musico',
+    displayId: 'MUSICO',
   },
   'TIANHE':    {
     displayNameZh: '中国空间站',
     displayNameEn: 'CSS(China Space Station)',
     displayLabelEn: 'CSS',
-    optionNameZh: '中国空间站 (Musico)',
-    optionNameEn: 'CSS(Musico)',
+    optionNameZh: '中国空间站 (MUSICO)',
+    optionNameEn: 'CSS(MUSICO)',
     cardNameEn: 'CSS',
-    displayId: 'Musico',
+    displayId: 'MUSICO',
   },
   'FYBB#1':    {
     displayNameZh: '雄彬一号',
@@ -710,7 +710,7 @@ function computeStats(states) {
   const nameEl = G('mName-');
   if (nameEl) {
     nameEl.textContent = getLocalizedName(meta);
-    nameEl.style.color = (meta.displayId === 'Musico') ? '#66ccff' : '#00b08d';
+    nameEl.style.color = (meta.displayId === 'MUSICO') ? '#66ccff' : '#00b08d';
   }
   // ID 白字
   const idEl = G('mId-');
@@ -998,7 +998,7 @@ function addOneSat(viewer, meta, states, registry) {
   const iconUrl = isFYBB ? FYBB_ICON_URL : CSS_ICON_URL;
 
   // 轨道线颜色（固定）
-  // CSS/Musico → 青色；FYBB#1 → 绿色
+  // CSS/MUSICO → 青色；FYBB#1 → 绿色
   const orbitColor = isFYBB
     ? Cesium.Color.fromCssColorString('#3ddc84')
     : Cesium.Color.fromCssColorString('#5aa9ff');
@@ -1738,7 +1738,7 @@ async function init() {
 
   const registry = [];
 
-  // ── 1. CSS OEM（中国空间站 / Musico）──
+  // ── 1. CSS OEM（中国空间站 / MUSICO）──
   try {
     console.log('[Demo] fetching OEM ./data/CSS_OEM.dat');
     const resp = await fetch('./data/CSS_OEM.dat');
