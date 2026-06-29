@@ -1201,9 +1201,20 @@ function bindMultiTargetUI(viewer, registry, sceneRect, timebarApi, autoRotation
     orbitDensityDays = days;
     const centerTimeIso = Cesium.JulianDate.toIso8601(viewer.clock.currentTime);
     registry.forEach(item => rebuildOrbitLine(item, orbitDensityDays, centerTimeIso));
-    const sourceStart = current?.startJD || gStart;
-    const sourceStop = current?.stopJD || gStop;
-    timebarApi?.setWindow(viewer.clock.currentTime, orbitDensityDays, { mode: getWindowMode() }, sourceStart, sourceStop);
+    
+   // ✅ 改后：以新卫星数据源的起始时刻为 anchor，锁定到数据本身
+    const sourceStart = current.startJD || gStart;
+    const sourceStop  = current.stopJD  || gStop;
+      
+   // TLE 模式：anchor = 卫星 TLE epoch（即 startJD 的实际轨道起点）
+   // OEM 模式：anchor = 数据起始时刻
+    const anchorForSwitch = (current.sourceType === 'tle')
+        ? Cesium.JulianDate.clone(sourceStart)          // TLE：数据起点（如 6月26日）
+        : Cesium.JulianDate.fromDate(new Date());        // OEM：当前系统时间（实时性更强）
+      timebarApi?.setWindow(anchorForSwitch, orbitDensityDays,
+        { mode: getWindowMode() }, sourceStart, sourceStop);
+      //CSS（TLE）切换时 anchor 锁定在 TLE 数据起始日，窗口稳定不漂移
+      //FYBB#1（OEM）切换时 anchor 是当前系统时间，符合"实时"语义
     syncOrbitVisibility();
   };
 
@@ -1667,7 +1678,7 @@ function addImageryOverlay(viewer) {
   const PINLON=114.18, PINLAT=22.35;
   const scenePin = viewer.entities.add({
     id:'fybb1-scene-pin',
-    name:'FYBB#1 获取区域',
+    name:'遥感影像获取区域',
     position: Cesium.Cartesian3.fromDegrees(PINLON, PINLAT, 0),
     billboard:{
       image: buildPinIcon('#00b08d'),
@@ -1676,7 +1687,7 @@ function addImageryOverlay(viewer) {
       disableDepthTestDistance: Number.POSITIVE_INFINITY,
     },
     label:{
-      text:'FYBB#1\nScene Area',  // i18n handled by JS
+      text:'Imagery Area',  // i18n handled by JS
       font:'500 16px sans-serif',
       fillColor: Cesium.Color.fromCssColorString('#a3cf62'),
       outlineColor: Cesium.Color.BLACK,
@@ -1687,7 +1698,7 @@ function addImageryOverlay(viewer) {
       show:true,
     },
     description:`<div style="color:#00b08d;font-family:sans-serif;font-size:13px;padding:4px">
-      <b>FYBB#1 雄彬一号</b><br><br>获取区域：Hong Kong<br><br>时间段：2026-05-09 ~ 05-15</div>`,
+      <b>卫星遥感影像</b><br><br>获取区域：Hong Kong<br><br>时间段：2026-05-09 ~ 05-15</div>`,
   });
 
   viewer.entities.add({
@@ -1798,7 +1809,7 @@ async function init() {
       const dt = Cesium.JulianDate.secondsDifference(time, lastFrameTime);
       lastFrameTime = Cesium.JulianDate.clone(time);
       if (!Number.isFinite(dt) || dt <= 0) return;
-      viewer.camera.rotateRight(Cesium.Math.toRadians(ROTATE_SPEED) * dt);
+      viewer.camera.rotateLeft(Cesium.Math.toRadians(ROTATE_SPEED) * dt);
     };
 
     viewer.scene.postRender.addEventListener(onPostRender);
