@@ -636,7 +636,8 @@ function rebuildOrbitLine(entry, days, centerTimeIso) {
       // ── 1. 更新时间范围 ──
       const first = Cesium.JulianDate.fromIso8601(states[0].timeUtc);
       const last  = Cesium.JulianDate.fromIso8601(states[states.length - 1].timeUtc);
-      entry.startJD   = Cesium.JulianDate.clone(first);
+      // startJD 只在首次初始化时设定（tleAnchorJD），rebuildOrbit 不覆盖
+      // stopJD 跟随实际传播范围更新（用于 setWindow 的 sourceStop）
       entry.stopJD    = Cesium.JulianDate.clone(last);
       entry.allStates = states;
 
@@ -1145,6 +1146,10 @@ function addOneSat(viewer, meta, states, registry) {
   const entry = {
     key:safeId, meta,
     sourceType: meta.sourceType || ((meta.refFrame||'').includes('TEME') ? 'tle' : 'oem'),
+   // 在 registry.push(entry) 或 return entry 的对象字面量里加：
+   tleAnchorJD: (meta.sourceType === 'tle' || (meta.refFrame||'').includes('TEME'))
+    ? Cesium.JulianDate.clone(startJD)   // 初始化时的锚点，永远不变
+    : null,
     tleLine1: meta.tleLine1 || '',
     tleLine2: meta.tleLine2 || '',
     stats: computeStats(states),
@@ -1237,26 +1242,31 @@ function bindMultiTargetUI(viewer, registry, sceneRect, timebarApi, autoRotation
   };
 
   const applyOrbitDensity = days => {
-    resumeSceneRotation();
-    orbitDensityDays = days;
-    const centerTimeIso = Cesium.JulianDate.toIso8601(viewer.clock.currentTime);
-    registry.forEach(item => rebuildOrbitLine(item, orbitDensityDays, centerTimeIso));
-    
-   // ✅ 改后：以新卫星数据源的起始时刻为 anchor，锁定到数据本身
-    const sourceStart = current.startJD || gStart;
-    const sourceStop  = current.stopJD  || gStop;
-      
-   // TLE 模式：anchor = 卫星 TLE epoch（即 startJD 的实际轨道起点）
-   // OEM 模式：anchor = 数据起始时刻
-    const anchorForSwitch = (current.sourceType === 'tle')
-        ? Cesium.JulianDate.clone(sourceStart)          // TLE：数据起点（如 6月26日）
-        : Cesium.JulianDate.fromDate(new Date());        // OEM：当前系统时间（实时性更强）
-      timebarApi?.setWindow(anchorForSwitch, orbitDensityDays,
-        { mode: getWindowMode() }, sourceStart, sourceStop);
-      //CSS（TLE）切换时 anchor 锁定在 TLE 数据起始日，窗口稳定不漂移
-      //FYBB#1（OEM）切换时 anchor 是当前系统时间，符合"实时"语义
-    syncOrbitVisibility();
-  };
+     resumeSceneRotation();
+     orbitDensityDays = days;
+   
+     // ── 每个 entry 用自己合适的 centerTimeIso ──
+     registry.forEach(item => {
+       let centerIso;
+       if (item.sourceType === 'tle') {
+         // TLE：永远从固定锚点（初始化时的 startJD）开始向前传播
+         centerIso = Cesium.JulianDate.toIso8601(item.tleAnchorJD || item.startJD);
+       } else {
+         // OEM：用当前时刻为中心（滑窗）
+         centerIso = Cesium.JulianDate.toIso8601(viewer.clock.currentTime);
+       }
+       rebuildOrbitLine(item, orbitDensityDays, centerIso);
+  });
+
+  const sourceStart = current.startJD || gStart;
+  const sourceStop  = current.stopJD  || gStop;
+  const anchorForSwitch = (current.sourceType === 'tle')
+    ? Cesium.JulianDate.clone(current.tleAnchorJD || current.startJD)  // ← 用锚点
+    : Cesium.JulianDate.fromDate(new Date());
+  timebarApi?.setWindow(anchorForSwitch, orbitDensityDays,
+    { mode: getWindowMode() }, sourceStart, sourceStop);
+  syncOrbitVisibility();
+};
 
   densityBtns.forEach(btn => btn.addEventListener('click', () => {
     densityBtns.forEach(b => b.classList.remove('active'));
@@ -1315,7 +1325,7 @@ function bindMultiTargetUI(viewer, registry, sceneRect, timebarApi, autoRotation
       const sourceStart = current.startJD || gStart;
       const sourceStop  = current.stopJD  || gStop;
       const anchor = (current.sourceType === 'tle')
-       ? Cesium.JulianDate.clone(sourceStart)      // TLE：锁定到数据起点
+       ? Cesium.JulianDate.clone(current.tleAnchorJD || current.startJD)      // TLE：锁定到数据起点
        : Cesium.JulianDate.fromDate(new Date());   // OEM：当前系统时间
       timebarApi?.setWindow(anchor, orbitDensityDays,
        { mode: getWindowMode() }, sourceStart, sourceStop);
@@ -1822,7 +1832,11 @@ async function init() {
     for (const sat of sats) {
       console.log('[Demo] TLE sat:', sat.name, sat.noradId);
       if (!sat.line1||!sat.line2) continue;
-      const states = tleToStatesWindowed(sat, 3, Cesium.JulianDate.toIso8601(viewer.clock.currentTime));
+      // 初始化 FYBB#1 时用 OEM 的 gStart 作为起点（此时 registry 已有 CSS entry）
+      const tleAnchor = registry[0]?.startJD   // CSS OEM 的起始时间
+        ? Cesium.JulianDate.toIso8601(registry[0].startJD)
+        : Cesium.JulianDate.toIso8601(viewer.clock.startTime);
+      const states = tleToStatesWindowed(sat, 3, tleAnchor);
       console.log('[Demo] tleToStatesWindowed returned', states.length, 'states');
       if (states.length < 2) continue;
       addOneSat(viewer,
