@@ -624,17 +624,57 @@ function rebuildOrbitLine(entry, days, centerTimeIso) {
   const preset = getOrbitPreset(days);
 
   let positions = [];
+
   if (entry.sourceType === 'tle' && entry.tleLine1 && entry.tleLine2) {
-    const states = tleToStatesWindowed({ line1: entry.tleLine1, line2: entry.tleLine2 }, preset.windowDays, centerTimeIso);
+    const states = tleToStatesWindowed(
+      { line1: entry.tleLine1, line2: entry.tleLine2 },
+      preset.windowDays,
+      centerTimeIso
+    );
+
     if (states.length >= 2) {
+      // ── 1. 更新时间范围 ──
       const first = Cesium.JulianDate.fromIso8601(states[0].timeUtc);
-      const last = Cesium.JulianDate.fromIso8601(states[states.length - 1].timeUtc);
-      if (first && last) {
-        entry.startJD = Cesium.JulianDate.clone(first);
-        entry.stopJD = Cesium.JulianDate.clone(last);
+      const last  = Cesium.JulianDate.fromIso8601(states[states.length - 1].timeUtc);
+      entry.startJD   = Cesium.JulianDate.clone(first);
+      entry.stopJD    = Cesium.JulianDate.clone(last);
+      entry.allStates = states;
+
+      // ── 2. 重建 sampledProp，卫星实体 position 覆盖新时间范围 ──
+      const newProp = new Cesium.SampledPositionProperty();
+      newProp.setInterpolationOptions({
+        interpolationDegree: 5,
+        interpolationAlgorithm: Cesium.LagrangePolynomialApproximation
+      });
+      states.forEach(s => {
+        try {
+          const jd  = Cesium.JulianDate.fromIso8601(s.timeUtc);
+          const pos = new Cesium.Cartesian3(s.xKm * 1000, s.yKm * 1000, s.zKm * 1000);
+          newProp.addSample(jd, pos);
+        } catch (_) {}
+      });
+      entry.sampledProp = newProp;
+
+      // ── 3. 把新 prop 同步给卫星实体 ──
+      if (entry.satEntity) {
+        entry.satEntity.position    = newProp;
+        entry.satEntity.orientation = new Cesium.VelocityOrientationProperty(newProp);
+      }
+      // 标签实体（如果单独挂了 position）
+      if (entry.satLabel) {
+        entry.satLabel.position = newProp;
+      }
+
+      // ── 4. 更新可用时间区间（让 Cesium 知道实体有效范围）──
+      if (entry.satEntity?.availability) {
+        entry.satEntity.availability = new Cesium.TimeIntervalCollection([
+          new Cesium.TimeInterval({ start: first, stop: last })
+        ]);
       }
     }
+
     positions = samplePositions(states, preset.stepMin);
+
   } else if (entry.sampledProp) {
     positions = sampleOrbitPositions(entry, centerTimeIso, preset.windowDays, preset.stepMin, 'center');
   } else {
@@ -1271,10 +1311,16 @@ function bindMultiTargetUI(viewer, registry, sceneRect, timebarApi, autoRotation
     if (found) {
       current = found;
       populatePanel(current.meta, current.stats);
+     // ── 先用干净的 anchor 设时间窗口，不能用 currentTime ──
       const sourceStart = current.startJD || gStart;
-      const sourceStop = current.stopJD || gStop;
-      timebarApi?.setWindow(viewer.clock.currentTime, orbitDensityDays, { mode: getWindowMode() }, sourceStart, sourceStop);
-      applyOrbitDensity(orbitDensityDays);
+      const sourceStop  = current.stopJD  || gStop;
+      const anchor = (current.sourceType === 'tle')
+       ? Cesium.JulianDate.clone(sourceStart)      // TLE：锁定到数据起点
+       : Cesium.JulianDate.fromDate(new Date());   // OEM：当前系统时间
+      timebarApi?.setWindow(anchor, orbitDensityDays,
+       { mode: getWindowMode() }, sourceStart, sourceStop);
+       
+      applyOrbitDensity(orbitDensityDays);  // 这个会再 rebuildOrbitLine
       syncOrbitVisibility();
     }
   });
