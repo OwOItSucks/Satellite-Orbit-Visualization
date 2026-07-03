@@ -40,7 +40,7 @@ jobs:
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           # 暂存这两个文件
-          git add data/CSS_OEM.dat data/FYBB1.tle
+          git add data/CSS_OEM.dat data/FYBB#1.tle
           # 如果有任意一个文件发生改变，则提交并推送到仓库
           git diff --staged --quiet || git commit -m "chore: update CSS OEM and TLE $(date -u +%Y-%m-%d)"
           git push || echo "No changes to push"
