@@ -30,23 +30,29 @@ jobs:
       - name: Fetch OEM from CMSE
         run: python3 .github/workflows/scripts/fetch_oem.py
 
-      # 如果希望下载的数据保留在源码仓库，保留这段 push 代码
+      # ── 新增：执行 TLE 抓取脚本 ──
+      - name: Fetch TLE from CelesTrak
+        run: python3 .github/workflows/scripts/fetch_tle.py
+
+      # 修改：同时追踪 OEM 和 TLE 文件的变化
       - name: Commit and push if changed
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/CSS_OEM.dat
-          git diff --staged --quiet || git commit -m "chore: update CSS OEM $(date -u +%Y-%m-%d)"
+          # 暂存这两个文件
+          git add data/CSS_OEM.dat data/FYBB1.tle
+          # 如果有任意一个文件发生改变，则提交并推送到仓库
+          git diff --staged --quiet || git commit -m "chore: update CSS OEM and TLE $(date -u +%Y-%m-%d)"
           git push || echo "No changes to push"
 
-      # 下面三步是官方推荐的直接部署 Pages 的做法
+      # 下面是官方推荐的直接部署 Pages 的做法
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: '.' # 上传整个根目录（因为 index.html 和 data 都在根目录）
+          path: '.' 
 
       - name: Deploy to GitHub Pages
         id: deployment
