@@ -26,6 +26,17 @@ def fetch_tle():
             
             tle_data = r.read().decode("utf-8").strip()
             
+        # ─── 核心修改：强行将第一行（卫星名）洗成 FYBB#1 ───
+        if len(lines) >= 3:
+            print(f"[改名] 成功将官方名称 '{lines[0].strip()}' 替换为 'FYBB#1'")
+            lines[0] = "FYBB#1"
+        elif len(lines) == 2:
+            # 万一 CelesTrak 只返回了两行，在最前面补上名字
+            lines.insert(0, "FYBB#1")
+            
+        # 重新拼接成字符串
+        tle_data = "\n".join(lines)
+        
         # 简单校验数据是否包含 TLE 的特征（第二行通常以 1 开头，第三行以 2 开头）
         if f"1 {CATNR}" not in tle_data and f"2 {CATNR}" not in tle_data:
             raise ValueError(f"获取到的数据似乎不是有效的 TLE 格式:\n{tle_data}")
