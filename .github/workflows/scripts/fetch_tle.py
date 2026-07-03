@@ -26,6 +26,9 @@ def fetch_tle():
             
             tle_data = r.read().decode("utf-8").strip()
             
+        # 按行切分数据
+        lines = tle_data.splitlines()
+        
         # ─── 核心修改：强行将第一行（卫星名）洗成 FYBB#1 ───
         if len(lines) >= 3:
             print(f"[改名] 成功将官方名称 '{lines[0].strip()}' 替换为 'FYBB#1'")
