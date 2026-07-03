@@ -5,7 +5,7 @@ from pathlib import Path
 CATNR = "57696"
 # CelesTrak 标准 GP TLE 请求接口
 URL = f"https://celestrak.org/NORAD/elements/gp.php?CATNR={CATNR}&FORMAT=tle"
-OUT = Path("data/FYBB1.tle")
+OUT = Path("data/FYBB#1.tle")
 
 # 确保 data 目录存在
 OUT.parent.mkdir(exist_ok=True)
