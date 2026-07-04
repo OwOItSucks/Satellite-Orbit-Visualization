@@ -1058,17 +1058,34 @@ function addOneSat(viewer, meta, states, registry) {
   });
   const orbitPositions = [];
   let startJD=null, stopJD=null;
+   
+ //ECI（EME2000/J2000）→ ECEF 坐标系转换
+  const isInertialFrame = /EME2000|J2000/i.test(meta.refFrame || '');
+
   for (const s of states) {
-    const iso = fixIso(s.timeUtc);
-    if (!iso) continue;
-    let jd; try { jd=Cesium.JulianDate.fromIso8601(iso); } catch(e){ continue; }
-    const xM=s.xKm*1000, yM=s.yKm*1000, zM=s.zKm*1000;
-    if (![xM,yM,zM].every(Number.isFinite)) continue;
-    const pos = new Cesium.Cartesian3(xM,yM,zM);
-    sampledProp.addSample(jd,pos);
-    orbitPositions.push(pos);
-    if (!startJD) startJD=Cesium.JulianDate.clone(jd);
-    stopJD=Cesium.JulianDate.clone(jd);
+     const iso = fixIso(s.timeUtc);
+     if (!iso) continue;
+     let jd;
+     try { jd = Cesium.JulianDate.fromIso8601(iso); } catch(e) { continue; }
+   
+     let xM, yM, zM;
+     if (isInertialFrame) {
+       // EME2000 是惯性系，必须先转到 ECEF 才能给 Cesium 用
+       const d = new Date(iso);
+       const gmst = satellite.gstime(d);
+       const ecef = satellite.eciToEcf({ x: s.xKm, y: s.yKm, z: s.zKm }, gmst);
+       xM = ecef.x * 1000; yM = ecef.y * 1000; zM = ecef.z * 1000;
+     } else {
+       // 已经是 ECEF/ITRF，直接用
+       xM = s.xKm * 1000; yM = s.yKm * 1000; zM = s.zKm * 1000;
+     }
+   
+     if (![xM, yM, zM].every(Number.isFinite)) continue;
+     const pos = new Cesium.Cartesian3(xM, yM, zM);
+     sampledProp.addSample(jd, pos);
+     orbitPositions.push(pos);
+     if (!startJD) { startJD = Cesium.JulianDate.clone(jd); }
+     stopJD = Cesium.JulianDate.clone(jd);
   }
   if (!startJD||orbitPositions.length<2) return null;
 
