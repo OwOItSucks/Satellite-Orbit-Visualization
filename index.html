@@ -11,7 +11,7 @@
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{width:100%;height:100%;background:#0d1117;overflow:hidden}
 #cesiumContainer{width:100vw;height:100vh;position:absolute;top:0;left:0}
-:root{--panel-w:390px}
+:root{--desktop-panel-w:390px;--panel-w:var(--desktop-panel-w);--r-panel-w:230px}
 
 /* ══════════════════════════════════════════
    BANNER
@@ -68,7 +68,7 @@ html,body{width:100%;height:100%;background:#0d1117;overflow:hidden}
 #rPanel {
   position: absolute;
   top: 42px; right: 0;
-  width: 230px;
+  width: var(--r-panel-w);
   height: calc(100vh - 42px);
   background: rgba(13,17,23,.93);
   backdrop-filter: blur(10px);
@@ -78,10 +78,10 @@ html,body{width:100%;height:100%;background:#0d1117;overflow:hidden}
   transition: transform .35s cubic-bezier(.16,1,.3,1);
   overflow-y: auto;
 }
-#rPanel.collapsed { transform: translateX(230px); }
+#rPanel.collapsed { transform: translateX(100%); }
 #rtb {
   position: absolute;
-  top: calc(42px + 50% - 24px); right: 230px;
+  top: calc(42px + 50% - 24px); right: var(--r-panel-w);
   width: 20px; height: 48px;
   background: rgba(13,17,23,.93);
   border: 1px solid #30363d; border-right: none;
@@ -120,7 +120,7 @@ html,body{width:100%;height:100%;background:#0d1117;overflow:hidden}
 .bm-btn.active { background: #1a3654; border-color: #58a6ff; color: #58a6ff; }
 .bm-btn .bm-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
 
-#panel.collapsed{transform:translateX(calc(-1 * var(--panel-w)))}
+#panel.collapsed{transform:translateX(-100%)}
 .panel-resizer{position:absolute;top:0;right:0;width:10px;height:100%;cursor:ew-resize;z-index:5;background:transparent}
 .panel-resizer:hover,.panel-resizer.dragging{background:linear-gradient(180deg,rgba(88,166,255,.10),rgba(88,166,255,.04))}
 .ph{padding:10px 12px 6px;border-bottom:1px solid #21262d;display:flex;align-items:center;gap:6px}
@@ -212,7 +212,7 @@ html,body{width:100%;height:100%;background:#0d1117;overflow:hidden}
 .eb{margin-top:14px;padding:7px 20px;background:#21262d;border:1px solid #30363d;border-radius:6px;color:#c9d1d9;font-size:12px;cursor:pointer}
 .eb:hover{background:#30363d}
 
-/* ========== 移动端适配（新增区块，未修改原有样式；v2 修订：修复 rtb 联动错位/横竖屏切换/timebar 溢出/开关滑块尺寸对齐） ========== */
+/* ========== 移动端适配：面板与按钮共享宽度，面板展开时隐藏时间轴 ========== */
 @media (max-width: 820px) {
   :root { --panel-w: 86vw; --r-panel-w: min(78vw, 300px); }
 
@@ -226,12 +226,13 @@ html,body{width:100%;height:100%;background:#0d1117;overflow:hidden}
   #panel {
     top: 38px;
     height: calc(100vh - 38px);
-    max-width: 86vw;
+    height: calc(100dvh - 38px);
   }
-  #panel.collapsed { transform: translateX(calc(-1 * var(--panel-w))); }
+  #panel.collapsed { transform: translateX(-100%); }
 
   #tb {
-    top: calc(38px + (100vh - 38px) / 2 - 24px);
+    top: calc(38px + (100vh - 38px) / 2 - 28px);
+    top: calc(38px + (100dvh - 38px) / 2 - 28px);
     height: 56px;
     width: 24px;
     font-size: 12px;
@@ -245,6 +246,7 @@ html,body{width:100%;height:100%;background:#0d1117;overflow:hidden}
   #rPanel {
     top: 38px;
     height: calc(100vh - 38px);
+    height: calc(100dvh - 38px);
     width: var(--r-panel-w);
     right: 0;
     transform: translateX(0);
@@ -252,7 +254,8 @@ html,body{width:100%;height:100%;background:#0d1117;overflow:hidden}
   #rPanel.collapsed { transform: translateX(100%); }
 
   #rtb {
-    top: calc(38px + (100vh - 38px) / 2 - 24px);
+    top: calc(38px + (100vh - 38px) / 2 - 28px);
+    top: calc(38px + (100dvh - 38px) / 2 - 28px);
     right: var(--r-panel-w);
     height: 56px;
     width: 24px;
@@ -283,6 +286,13 @@ html,body{width:100%;height:100%;background:#0d1117;overflow:hidden}
     box-sizing: border-box;
     padding: 8px 10px 10px;
     font-size: 10px;
+    white-space: normal;
+    transition: opacity .2s ease, visibility .2s ease;
+  }
+  body.mobile-panel-open #timebar {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
   }
   .tb-current .tb-edge,
   .tb-edge {
@@ -301,7 +311,8 @@ html,body{width:100%;height:100%;background:#0d1117;overflow:hidden}
 @media (max-width: 480px) {
   #banner .b-title { font-size: 10px; gap: 3px; }
   #banner { padding: 0 42px; }
-  :root { --panel-w: 92vw; }
+  /* 为展开侧和另一侧的两个 24px 按钮留足空间，避免窄屏互相遮挡。 */
+  :root { --panel-w: min(92vw, calc(100vw - 48px)); }
   .kg { grid-template-columns: 1fr 1fr; }
   .sat-orbit-row { grid-template-columns: 1fr !important; }
   .tb-current {
@@ -346,9 +357,9 @@ html,body{width:100%;height:100%;background:#0d1117;overflow:hidden}
 </div>
 
 <div id="cesiumContainer"></div>
-<button id="tb" title="收起">&#8249;</button>
+<button id="tb" class="collapsed" title="展开 / Expand">&#8250;</button>
 
-<div id="panel">
+<div id="panel" class="collapsed">
   <div id="panelResizer" class="panel-resizer" title="拖动调整宽度"></div>
   <!-- 卫星信息 -->
   <div class="ps">
@@ -441,10 +452,10 @@ html,body{width:100%;height:100%;background:#0d1117;overflow:hidden}
 </div>
 
 <!-- 右侧收起 Tab -->
-<button id="rtb" title="收起">›</button>
+<button id="rtb" class="collapsed" title="展开 / Expand">‹</button>
 
 <!-- 右侧面板 -->
-<div id="rPanel">
+<div id="rPanel" class="collapsed">
 
   <!-- 底图切换 -->
   <div class="ph">
@@ -501,6 +512,48 @@ html,body{width:100%;height:100%;background:#0d1117;overflow:hidden}
   <div id="eText"></div>
   <div class="eh" id="eHint" data-zh="数据加载失败，请检查 /data/ 目录" data-en="Data load failed. Check /data/ directory">数据加载失败，请检查 /data/ 目录</div>
 </div>
+
+<script>
+// 面板控制独立于 Cesium 和数据加载，移动端始终只允许一个面板展开。
+(function initPanelControls() {
+  const mq = window.matchMedia('(max-width: 820px)');
+  const sides = [
+    { panel: document.getElementById('panel'), button: document.getElementById('tb'), open: '‹', closed: '›' },
+    { panel: document.getElementById('rPanel'), button: document.getElementById('rtb'), open: '›', closed: '‹' }
+  ];
+  function setCollapsed(side, collapsed) {
+    side.panel.classList.toggle('collapsed', collapsed);
+    side.panel.inert = collapsed;
+    side.button.classList.toggle('collapsed', collapsed);
+    side.button.textContent = collapsed ? side.closed : side.open;
+    side.button.title = collapsed ? '展开 / Expand' : '收起 / Collapse';
+    side.button.setAttribute('aria-controls', side.panel.id);
+    side.button.setAttribute('aria-expanded', String(!collapsed));
+  }
+  function syncTimebar() {
+    document.body.classList.toggle('mobile-panel-open',
+      mq.matches && sides.some(side => !side.panel.classList.contains('collapsed')));
+  }
+  sides.forEach(side => {
+    side.button.addEventListener('click', () => {
+      const willOpen = side.panel.classList.contains('collapsed');
+      if (mq.matches && willOpen) {
+        sides.forEach(other => { if (other !== side) setCollapsed(other, true); });
+      }
+      setCollapsed(side, !willOpen);
+      syncTimebar();
+    });
+  });
+  function syncViewport() {
+    // 初次加载或跨越断点：移动端双收纳，桌面端双展开。
+    sides.forEach(side => setCollapsed(side, mq.matches));
+    syncTimebar();
+  }
+  syncViewport();
+  if (mq.addEventListener) mq.addEventListener('change', syncViewport);
+  else mq.addListener(syncViewport);
+})();
+</script>
 
 <script>
 // ══════════════════════════════════════════════════
@@ -633,9 +686,11 @@ function initPanelResize(panel) {
   const maxW = 520;
   const applyWidth = w => {
     const next = Math.max(minW, Math.min(maxW, Math.round(w)));
-    root.style.setProperty('--panel-w', `${next}px`);
+    root.style.setProperty('--desktop-panel-w', `${next}px`);
   };
-  applyWidth(panel.getBoundingClientRect().width || 390);
+  if (!window.matchMedia('(max-width: 820px)').matches) {
+    applyWidth(panel.getBoundingClientRect().width || 390);
+  }
 
   const grip = G('panelResizer');
   let dragging = false;
@@ -1546,12 +1601,6 @@ function bindMultiTargetUI(viewer, registry, sceneRect, timebarApi, autoRotation
     resumeSceneRotation();
     window.location.reload();
   };
-  const tb=G('tb'), panel=G('panel');
-  tb.addEventListener('click',()=>{
-    const c=panel.classList.toggle('collapsed');
-    tb.classList.toggle('collapsed',c);
-    tb.textContent=c?'›':'‹';
-  });
 
 }
 
@@ -1736,13 +1785,6 @@ function initSatStatus(viewer, registry) {
     }
   });
 
-  // 右侧面板收起按钮
-  const rtb = G('rtb'), rPanel = G('rPanel');
-  rtb?.addEventListener('click', () => {
-    const c = rPanel.classList.toggle('collapsed');
-    rtb.classList.toggle('collapsed', c);
-    rtb.textContent = c ? '‹' : '›';
-  });
 }
 
 // ══════════════════════════════════════════════════
@@ -2135,45 +2177,6 @@ async function init() {
 init();
 </script>
    
-<script>
-(function () {
-  /* 修订点4: 用 matchMedia + change 事件响应横竖屏/窗口尺寸变化，
-     而不是只在页面加载那一刻判断一次，避免旋转屏幕后面板状态与视口不符。
-     只负责设置"初始/切换阈值时"的折叠状态，不影响用户手动点击 #tb/#rtb 的行为，
-     也完全不触碰任何 Cesium 初始化或轨道计算逻辑。 */
-  var mq = window.matchMedia('(max-width: 820px)');
-  var userToggledPanel = false;
-
-  var panel = document.getElementById('panel');
-  var tb = document.getElementById('tb');
-
-  if (tb) {
-    tb.addEventListener('click', function () {
-      userToggledPanel = true;
-    });
-  }
-
-  function syncPanelForViewport(isMobile) {
-    if (!panel || userToggledPanel) return;
-    var collapsed = panel.classList.contains('collapsed');
-    if (isMobile && !collapsed) {
-      panel.classList.add('collapsed');
-      if (tb) { tb.classList.add('collapsed'); tb.textContent = '›'; }
-    } else if (!isMobile && collapsed) {
-      panel.classList.remove('collapsed');
-      if (tb) { tb.classList.remove('collapsed'); tb.textContent = '‹'; }
-    }
-  }
-
-  syncPanelForViewport(mq.matches);
-
-  if (mq.addEventListener) {
-    mq.addEventListener('change', function (e) { syncPanelForViewport(e.matches); });
-  } else if (mq.addListener) {
-    mq.addListener(function (e) { syncPanelForViewport(e.matches); });
-  }
-})();
-</script>
       
 </body>
 </html>
